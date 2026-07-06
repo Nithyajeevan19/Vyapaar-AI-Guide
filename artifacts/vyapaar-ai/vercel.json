@@ -1,9 +1,5 @@
 {
-  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/((?!assets/|favicon.ico|.*\\.png|.*\\.webp|.*\\.svg|.*\\.css|.*\\.js).*)" ,
-      "destination": "/index.html"
-    }
+    { "source": "/((?!assets/|favicon.ico|.*\\.png|.*\\.webp|.*\\.svg|.*\\.css|.*\\.js).*)" , "destination": "/index.html" }
   ]
 }
