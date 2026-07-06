@@ -57,7 +57,7 @@ export default function AIBusinessSetupPage() {
   // Setup Speech Recognition
   useEffect(() => {
     if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
-      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const rec = new SpeechRecognition();
       rec.continuous = false;
       rec.interimResults = false;

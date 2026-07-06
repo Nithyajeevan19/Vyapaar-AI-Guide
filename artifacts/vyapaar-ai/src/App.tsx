@@ -16,6 +16,12 @@ import AIBusinessSetupPage from "./pages/AIBusinessSetupPage";
 import ComingSoonPage from "./pages/ComingSoonPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
+import WebsitePage from "./pages/WebsitePage";
+import WhatsAppPage from "./pages/WhatsAppPage";
+import LearningPage from "./pages/LearningPage";
+import SchemesPage from "./pages/SchemesPage";
+import InsightsPage from "./pages/InsightsPage";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -42,13 +48,38 @@ function Router() {
         </Layout>
       </Route>
 
+      <Route path="/website">
+        <Layout>
+          <WebsitePage />
+        </Layout>
+      </Route>
+      
+      <Route path="/whatsapp">
+        <Layout>
+          <WhatsAppPage />
+        </Layout>
+      </Route>
+      
+      <Route path="/learning">
+        <Layout>
+          <LearningPage />
+        </Layout>
+      </Route>
+      
+      <Route path="/schemes">
+        <Layout>
+          <SchemesPage />
+        </Layout>
+      </Route>
+      
+      <Route path="/insights">
+        <Layout>
+          <InsightsPage />
+        </Layout>
+      </Route>
+
       {/* Coming Soon Routes */}
-      <Route path="/website"><Layout><ComingSoonPage /></Layout></Route>
       <Route path="/crm"><Layout><ComingSoonPage /></Layout></Route>
-      <Route path="/whatsapp"><Layout><ComingSoonPage /></Layout></Route>
-      <Route path="/learning"><Layout><ComingSoonPage /></Layout></Route>
-      <Route path="/schemes"><Layout><ComingSoonPage /></Layout></Route>
-      <Route path="/insights"><Layout><ComingSoonPage /></Layout></Route>
       <Route path="/profile"><Layout><ComingSoonPage /></Layout></Route>
 
       <Route component={NotFoundPage} />
