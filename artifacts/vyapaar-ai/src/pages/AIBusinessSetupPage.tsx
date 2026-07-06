@@ -1,26 +1,48 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { generateChatResponse, ChatMessage } from "../services/openaiService";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, MicOff, Send, Bot, CheckCircle2, Sparkles } from "lucide-react";
+import { Mic, MicOff, Send, Bot, CheckCircle2, Sparkles, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const QUESTIONS_EN = [
-  "What is your business name?",
-  "What type of business do you own?",
-  "Do you provide delivery or walk-in services?",
-  "What phone number should customers contact?"
-];
+// ─── Scripted conversation (no API key needed) ─────────────────────────────
 
-const QUESTIONS_TE = [
-  "మీ వ్యాపారం పేరు ఏమిటి?",
-  "మీరు ఏ రకమైన వ్యాపారం నిర్వహిస్తున్నారు?",
-  "మీరు డెలివరీ సేవలు అందిస్తున్నారా లేదా వాక్-ఇన్ సేవలు అందిస్తున్నారా?",
-  "కస్టమర్లు సంప్రదించడానికి ఫోన్ నంబర్ ఏమిటి?"
-];
+const SCRIPT = {
+  en: {
+    greeting:
+      "Hello! Welcome to Vyapaar AI. I'll ask you three quick questions to help digitize your business.",
+    questions: [
+      "What is your business name?",
+      "What type of business do you own?",
+      "Do you provide delivery service, walk-in service, or both?",
+    ],
+    acks: [
+      "Great, noted!",
+      "Perfect, got it!",
+      "Understood!",
+    ],
+    done: "Excellent! I have all the information I need. Please click Generate My Business to continue.",
+    lang: "en-US",
+  },
+  te: {
+    greeting:
+      "నమస్కారం! వ్యాపార్ AI కు స్వాగతం. మీ వ్యాపారాన్ని డిజిటల్ చేయడానికి నేను మూడు చిన్న ప్రశ్నలు అడుగుతాను.",
+    questions: [
+      "మీ వ్యాపారం పేరు ఏమిటి?",
+      "మీరు ఏ రకమైన వ్యాపారం చేస్తున్నారు?",
+      "మీరు డెలివరీ సేవ, వాక్-ఇన్ సేవ లేదా రెండూ అందిస్తున్నారా?",
+    ],
+    acks: [
+      "చాలా బాగుంది!",
+      "అర్థమైంది!",
+      "సరే!",
+    ],
+    done: "అద్భుతం! నాకు అవసరమైన సమాచారం మొత్తం వచ్చింది. దయచేసి 'Generate My Business' బటన్ను నొక్కండి.",
+    lang: "te-IN",
+  },
+};
 
 interface UIMessage {
   id: string;
@@ -28,63 +50,159 @@ interface UIMessage {
   text: string;
 }
 
+// ─── TTS helper ──────────────────────────────────────────────────────────────
+
+function speakText(text: string, lang: string) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = 0.95;
+  utter.pitch = 1;
+
+  // Pick best available voice for the language
+  const setVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const match =
+      voices.find((v) => v.lang === lang) ||
+      voices.find((v) => v.lang.startsWith(lang.split("-")[0])) ||
+      null;
+    if (match) utter.voice = match;
+    window.speechSynthesis.speak(utter);
+  };
+
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    setVoice();
+  } else {
+    // Voices not loaded yet — wait for the event
+    window.speechSynthesis.addEventListener("voiceschanged", setVoice, { once: true });
+  }
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export default function AIBusinessSetupPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
 
-  const questions = language === "te" ? QUESTIONS_TE : QUESTIONS_EN;
-  const systemPrompt = `You are Vyapaar AI, a friendly business consultant for Indian SMEs. You are currently onboarding a new business owner. Ask only the provided question. Keep your response SHORT (1-2 sentences max). Acknowledge the user's answer briefly, then ask the next question. If the language is Telugu, respond in Telugu. Be warm and encouraging.`;
+  const script = SCRIPT[language as "en" | "te"] ?? SCRIPT.en;
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // ── State ──────────────────────────────────────────────────────────────────
   const [messages, setMessages] = useState<UIMessage[]>([]);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    { role: "system", content: systemPrompt }
-  ]);
   const [inputText, setText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [currentQ, setCurrentQ] = useState(0); // which question we're on
   const [isComplete, setIsComplete] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Use refs for SpeechRecognition to avoid stale closures and double-start errors
   const recognitionRef = useRef<any>(null);
   const isRecordingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasGreeted = useRef(false);
 
+  // ── Scroll to bottom ───────────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Setup Speech Recognition — recreate when language changes
+  // ── Add a UI message ───────────────────────────────────────────────────────
+  const addMsg = useCallback((sender: "ai" | "user", text: string) => {
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), sender, text }]);
+  }, []);
+
+  // ── Speak + show AI message ────────────────────────────────────────────────
+  const aiSay = useCallback(
+    (text: string) => {
+      addMsg("ai", text);
+      setIsSpeaking(true);
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = script.lang;
+      utter.rate = 0.95;
+
+      const fire = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const match =
+          voices.find((v) => v.lang === script.lang) ||
+          voices.find((v) => v.lang.startsWith(script.lang.split("-")[0])) ||
+          null;
+        if (match) utter.voice = match;
+        utter.onend = () => setIsSpeaking(false);
+        utter.onerror = () => setIsSpeaking(false);
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utter);
+      };
+
+      if (window.speechSynthesis.getVoices().length > 0) {
+        fire();
+      } else {
+        window.speechSynthesis.addEventListener("voiceschanged", fire, { once: true });
+      }
+    },
+    [script.lang, addMsg]
+  );
+
+  // ── Initial greeting — runs once per language ──────────────────────────────
   useEffect(() => {
-    const SpeechRecognitionAPI =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (hasGreeted.current) return;
+    hasGreeted.current = true;
 
-    if (!SpeechRecognitionAPI) return;
+    // Small delay so TTS voices have time to load
+    const t = setTimeout(() => {
+      const greeting = `${script.greeting} ${script.questions[0]}`;
+      aiSay(greeting);
+    }, 600);
 
-    // Stop any ongoing session before replacing
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Build Speech Recognition ───────────────────────────────────────────────
+  useEffect(() => {
+    const SR =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try {
+        recognitionRef.current.abort();
+      } catch {}
     }
-    isRecordingRef.current = false;
-    setIsRecording(false);
 
-    const rec = new SpeechRecognitionAPI();
+    const rec = new SR();
     rec.continuous = false;
     rec.interimResults = false;
-    rec.lang = language === "te" ? "te-IN" : "en-US";
+    rec.lang = script.lang;
 
-    rec.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setText(transcript);
+    rec.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript.trim();
       isRecordingRef.current = false;
       setIsRecording(false);
+      if (transcript) {
+        setText(transcript);
+        // Auto-submit after STT result
+        setTimeout(() => submitAnswer(transcript), 300);
+      }
     };
 
-    rec.onerror = () => {
+    rec.onerror = (e: any) => {
       isRecordingRef.current = false;
       setIsRecording(false);
+      if (e.error !== "no-speech" && e.error !== "aborted") {
+        toast({
+          title: language === "te" ? "మైక్రోఫోన్ లోపం" : "Microphone Error",
+          description:
+            language === "te"
+              ? "దయచేసి టైప్ చేయండి."
+              : "Please type your answer instead.",
+          variant: "destructive",
+        });
+      }
     };
 
     rec.onend = () => {
@@ -93,132 +211,120 @@ export default function AIBusinessSetupPage() {
     };
 
     recognitionRef.current = rec;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
-  // Initial greeting (run only once on mount)
-  useEffect(() => {
-    const initialGreeting =
-      language === "te"
-        ? "నమస్తే! " + QUESTIONS_TE[0]
-        : "Namaste! " + QUESTIONS_EN[0];
-    addUIMessage("ai", initialGreeting);
-    speakText(initialGreeting);
-    setChatHistory(prev => [...prev, { role: "assistant", content: initialGreeting }]);
+  // ── Submit an answer ───────────────────────────────────────────────────────
+  const submitAnswer = useCallback(
+    async (text: string) => {
+      if (!text.trim() || isAiThinking || isComplete) return;
+      const userText = text.trim();
+      setText("");
+      addMsg("user", userText);
+
+      const newAnswers = [...answers, userText];
+      setAnswers(newAnswers);
+      setIsAiThinking(true);
+
+      // Small "thinking" pause for natural feel
+      await new Promise((r) => setTimeout(r, 600));
+
+      const nextQ = currentQ + 1;
+
+      if (nextQ < script.questions.length) {
+        // Acknowledge + ask next question
+        const ack = script.acks[currentQ] ?? (language === "te" ? "సరే!" : "Got it!");
+        const response = `${ack} ${script.questions[nextQ]}`;
+        setCurrentQ(nextQ);
+        setIsAiThinking(false);
+        aiSay(response);
+      } else {
+        // All questions answered
+        setIsComplete(true);
+        setIsAiThinking(false);
+        aiSay(script.done);
+        await saveBusinessInfo(newAnswers);
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [answers, currentQ, isAiThinking, isComplete, script, language]
+  );
 
-  const addUIMessage = (sender: "ai" | "user", text: string) => {
-    setMessages(prev => [...prev, { id: Math.random().toString(), sender, text }]);
+  // ── Save to Firestore + localStorage ──────────────────────────────────────
+  const saveBusinessInfo = async (finalAnswers: string[]) => {
+    const info = {
+      name: finalAnswers[0] || "",
+      type: finalAnswers[1] || "",
+      serviceType: finalAnswers[2] || "",
+    };
+    // Write to localStorage immediately so WebsitePage loads without Firestore delay
+    try { localStorage.setItem("vyapaar_business_info", JSON.stringify(info)); } catch {}
+
+    if (!user) return;
+    try {
+      await setDoc(
+        doc(db, "users", user.uid),
+        { businessInfo: info },
+        { merge: true }
+      );
+    } catch {}
   };
 
-  const speakText = (text: string) => {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language === "te" ? "te-IN" : "en-US";
-    window.speechSynthesis.speak(utterance);
+  // ── handleSend (text input) ────────────────────────────────────────────────
+  const handleSend = () => {
+    if (inputText.trim()) submitAnswer(inputText);
   };
 
+  // ── Toggle voice recording ─────────────────────────────────────────────────
   const toggleRecording = () => {
-    if (!recognitionRef.current) {
-      toast({ title: "Microphone not supported", description: "Please type your answer instead.", variant: "destructive" });
+    const rec = recognitionRef.current;
+    if (!rec) {
+      toast({
+        title: language === "te" ? "మైక్రోఫోన్ అందుబాటులో లేదు" : "Microphone not supported",
+        description:
+          language === "te"
+            ? "దయచేసి టైప్ చేయండి."
+            : "Please type your answer instead.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (isRecordingRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try {
+        rec.stop();
+      } catch {}
       isRecordingRef.current = false;
       setIsRecording(false);
     } else {
       setText("");
       try {
-        recognitionRef.current.start();
+        rec.start();
         isRecordingRef.current = true;
         setIsRecording(true);
       } catch {
-        // Recognition may already be running — stop it first and retry once
-        try { recognitionRef.current.stop(); } catch {}
+        // Already started — abort and retry
+        try {
+          rec.abort();
+        } catch {}
         isRecordingRef.current = false;
         setIsRecording(false);
         setTimeout(() => {
           try {
-            recognitionRef.current?.start();
+            rec.start();
             isRecordingRef.current = true;
             setIsRecording(true);
           } catch {}
-        }, 300);
+        }, 400);
       }
     }
   };
 
-  const saveBusinessInfo = async (finalAnswers: string[]) => {
-    if (!user) return;
-    try {
-      await setDoc(doc(db, "users", user.uid), {
-        businessInfo: {
-          name: finalAnswers[0] || "",
-          type: finalAnswers[1] || "",
-          serviceType: finalAnswers[2] || "",
-          phone: finalAnswers[3] || ""
-        }
-      }, { merge: true });
-    } catch {}
-  };
+  // ── Progress ───────────────────────────────────────────────────────────────
+  const totalQ = script.questions.length;
+  const progressPct = isComplete ? 100 : (currentQ / totalQ) * 100;
 
-  const handleSend = async () => {
-    if (!inputText.trim() || isAiThinking) return;
-
-    const userText = inputText.trim();
-    setText("");
-    addUIMessage("user", userText);
-
-    const newAnswers = [...answers, userText];
-    setAnswers(newAnswers);
-
-    const newHistory: ChatMessage[] = [
-      ...chatHistory,
-      { role: "user", content: userText }
-    ];
-    setChatHistory(newHistory);
-    setIsAiThinking(true);
-
-    if (currentQuestionIndex < questions.length - 1) {
-      const nextIndex = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIndex);
-
-      const aiPrompt = `The user answered the previous question. Now acknowledge their answer briefly (1 sentence) and ask this exact next question: "${questions[nextIndex]}"`;
-
-      try {
-        const response = await generateChatResponse([...newHistory, { role: "system", content: aiPrompt }]);
-        addUIMessage("ai", response);
-        speakText(response);
-        setChatHistory(prev => [...prev, { role: "assistant", content: response }]);
-      } catch {
-        const fallback = language === "te"
-          ? `సరే. ${questions[nextIndex]}`
-          : `Got it! ${questions[nextIndex]}`;
-        addUIMessage("ai", fallback);
-        speakText(fallback);
-      }
-    } else {
-      setIsComplete(true);
-      const completionMsg =
-        language === "te"
-          ? "ధన్యవాదాలు! మీ వ్యాపార సమాచారం సేవ్ చేయబడింది. ఇప్పుడు మీ డిజిటల్ వ్యాపారాన్ని రూపొందించండి!"
-          : "Thank you! Your business information has been saved. Now generate your digital business!";
-      addUIMessage("ai", completionMsg);
-      speakText(completionMsg);
-      await saveBusinessInfo(newAnswers);
-    }
-
-    setIsAiThinking(false);
-  };
-
-  const progressPct = Math.min(
-    isComplete ? 100 : (currentQuestionIndex / questions.length) * 100,
-    100
-  );
-
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-[calc(100vh-2rem)] md:h-screen p-4 md:p-6 max-w-4xl mx-auto">
       {/* Header */}
@@ -226,12 +332,16 @@ export default function AIBusinessSetupPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">AI Business Setup</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            {isComplete ? "Setup complete!" : `Question ${Math.min(currentQuestionIndex + 1, 4)} of 4`}
+            {isComplete
+              ? language === "te"
+                ? "సెటప్ పూర్తయింది!"
+                : "Setup complete!"
+              : `${language === "te" ? "ప్రశ్న" : "Question"} ${Math.min(currentQ + 1, totalQ)} ${language === "te" ? "యొక్క" : "of"} ${totalQ}`}
           </p>
         </div>
         <div className="text-right flex flex-col items-end gap-1.5">
           <span className="text-xs text-muted-foreground font-medium">
-            {isComplete ? "Complete" : `${Math.round(progressPct)}%`}
+            {isComplete ? (language === "te" ? "పూర్తి" : "Complete") : `${Math.round(progressPct)}%`}
           </span>
           <div className="w-36 h-2 bg-muted rounded-full overflow-hidden">
             <motion.div
@@ -260,8 +370,10 @@ export default function AIBusinessSetupPage() {
               >
                 {msg.sender === "ai" && (
                   <div className="mr-2.5 mt-1 shrink-0">
-                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-                      <Bot size={16} />
+                    <div className={`w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary transition-transform ${isSpeaking && msg.id === messages[messages.length - 1]?.id ? "scale-110" : ""}`}>
+                      {isSpeaking && msg.id === messages[messages.length - 1]?.id
+                        ? <Volume2 size={16} className="animate-pulse" />
+                        : <Bot size={16} />}
                     </div>
                   </div>
                 )}
@@ -316,7 +428,11 @@ export default function AIBusinessSetupPage() {
               >
                 <div className="flex items-center gap-2 text-green-500 text-sm font-medium">
                   <CheckCircle2 size={18} />
-                  <span>All 4 questions answered</span>
+                  <span>
+                    {language === "te"
+                      ? "మూడు ప్రశ్నలకు సమాధానం ఇవ్వబడింది"
+                      : "All 3 questions answered"}
+                  </span>
                 </div>
                 <a
                   href="/website"
@@ -324,7 +440,7 @@ export default function AIBusinessSetupPage() {
                   data-testid="button-generate-digital"
                 >
                   <Sparkles size={18} />
-                  Generate My Digital Business
+                  {language === "te" ? "నా వ్యాపారం రూపొందించండి" : "Generate My Business"}
                 </a>
               </motion.div>
             ) : (

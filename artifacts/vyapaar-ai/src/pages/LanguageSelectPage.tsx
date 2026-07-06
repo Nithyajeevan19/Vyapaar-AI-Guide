@@ -16,7 +16,8 @@ export default function LanguageSelectPage() {
   const handleContinue = async () => {
     if (!selected) return;
     setIsSaving(true);
-    await setLanguage(selected);
+    // Update local state + localStorage immediately
+    setLanguage(selected); // fire-and-forget Firestore (async, not awaited)
     setLocation("/dashboard");
   };
 

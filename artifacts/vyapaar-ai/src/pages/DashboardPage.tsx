@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { Bot, Globe, Users, MessageCircle, Lock, ArrowRight, Building2, Zap } from "lucide-react";
+import { Bot, Globe, Users, MessageCircle, Lock, ArrowRight, Building2, Zap, LineChart } from "lucide-react";
 import { motion } from "framer-motion";
 import { SkeletonCard } from "../components/SkeletonCard";
 
@@ -15,17 +15,40 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Timeout guard: never stay stuck in loading for more than 5 seconds
+    const timeout = setTimeout(() => setLoading(false), 5000);
+
     async function fetchBusiness() {
-      if (user) {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().businessInfo) {
-          setBusinessInfo(docSnap.data().businessInfo);
+      // First check localStorage for instant load
+      try {
+        const cached = localStorage.getItem("vyapaar_business_info");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.name) {
+            setBusinessInfo(parsed);
+            clearTimeout(timeout);
+            setLoading(false);
+            return;
+          }
         }
+      } catch {}
+
+      if (user) {
+        try {
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists() && docSnap.data().businessInfo) {
+            const info = docSnap.data().businessInfo;
+            setBusinessInfo(info);
+            try { localStorage.setItem("vyapaar_business_info", JSON.stringify(info)); } catch {}
+          }
+        } catch {}
       }
+      clearTimeout(timeout);
       setLoading(false);
     }
     fetchBusiness();
+    return () => clearTimeout(timeout);
   }, [user]);
 
   const greeting = language === "te" ? "నమస్తే" : "Namaste";
@@ -159,5 +182,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-import { LineChart } from "lucide-react";

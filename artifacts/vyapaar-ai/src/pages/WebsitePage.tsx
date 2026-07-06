@@ -8,7 +8,7 @@ import { GenericTemplate } from "../templates/website/GenericTemplate";
 import { WaterPlantTemplate } from "../templates/website/WaterPlantTemplate";
 import { SalesBusinessCRM } from "../templates/crm/SalesBusinessCRM";
 import { ServiceBusinessCRM } from "../templates/crm/ServiceBusinessCRM";
-import { Wand2, AlertCircle, RefreshCw, Building2, Phone, Briefcase, MapPin } from "lucide-react";
+import { Wand2, AlertCircle, RefreshCw, Building2, Phone, Briefcase, MapPin, Lock } from "lucide-react";
 import { useLanguage } from "../hooks/useLanguage";
 import { motion } from "framer-motion";
 import { SkeletonCard } from "../components/SkeletonCard";
@@ -26,21 +26,44 @@ export default function WebsitePage() {
   const [activeTab, setActiveTab] = useState<"website" | "crm">("website");
 
   useEffect(() => {
+    // Timeout guard — never stay stuck loading
+    const timeout = setTimeout(() => setLoading(false), 5000);
+
     async function fetchBusinessInfo() {
+      // First, check localStorage for instant load (written by AIBusinessSetupPage)
+      try {
+        const cached = localStorage.getItem("vyapaar_business_info");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.name) {
+            setBusinessInfo(parsed);
+            clearTimeout(timeout);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {}
+
+      // Fall back to Firestore
       if (user) {
         try {
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists() && docSnap.data().businessInfo) {
-            setBusinessInfo(docSnap.data().businessInfo);
+            const info = docSnap.data().businessInfo;
+            setBusinessInfo(info);
+            // Cache locally for next time
+            try { localStorage.setItem("vyapaar_business_info", JSON.stringify(info)); } catch {}
           }
         } catch (error) {
           console.error("Error fetching business info", error);
         }
       }
+      clearTimeout(timeout);
       setLoading(false);
     }
     fetchBusinessInfo();
+    return () => clearTimeout(timeout);
   }, [user]);
 
   const handleGenerate = async () => {
@@ -55,8 +78,15 @@ export default function WebsitePage() {
       );
       setBranding(result);
     } catch (error) {
-      console.error("Error generating branding", error);
-      alert("Failed to generate website. Please ensure your API key is set.");
+      console.error("Error generating branding, using fallback:", error);
+      // Use fallback branding so templates always render
+      setBranding({
+        businessName: businessInfo.name || "My Business",
+        tagline: "Your trusted local business",
+        primaryColor: businessInfo.type?.toLowerCase().includes("water") ? "#0284c7" : "#6366f1",
+        shortDescription: `${businessInfo.name} is a trusted ${businessInfo.type} serving the local community.`,
+        category: businessInfo.type || "Business",
+      });
     } finally {
       setGenerating(false);
     }
