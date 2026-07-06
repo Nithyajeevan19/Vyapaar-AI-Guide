@@ -1,0 +1,625 @@
+Continue the existing project.
+
+
+
+Do NOT redesign anything.
+
+
+
+Now build the Website and CRM generation.
+
+
+
+This is ONLY an MVP.
+
+
+
+IMPORTANT
+
+
+
+DO NOT generate websites from scratch.
+
+
+
+Instead create TWO very simple templates.
+
+
+
+Website Template 1
+
+
+
+Generic Business
+
+
+
+Sections
+
+
+
+Hero
+
+
+
+About
+
+
+
+Services
+
+
+
+Contact
+
+
+
+Website Template 2
+
+
+
+Water Plant
+
+
+
+Hero
+
+
+
+Products
+
+
+
+Delivery
+
+
+
+About
+
+
+
+Contact
+
+
+
+Keep both templates extremely simple.
+
+
+
+Professional.
+
+
+
+Responsive.
+
+
+
+No animations required.
+
+
+
+------------------------------------------------
+
+
+
+CRM
+
+
+
+Create TWO simple CRM templates.
+
+
+
+CRM Template 1
+
+
+
+Sales Business
+
+
+
+Cards
+
+
+
+Customers
+
+
+
+Orders
+
+
+
+Revenue
+
+
+
+Products
+
+
+
+CRM Template 2
+
+
+
+Service Business
+
+
+
+Appointments
+
+
+
+Customers
+
+
+
+Revenue
+
+
+
+Recent Activity
+
+
+
+Keep them static.
+
+
+
+------------------------------------------------
+
+
+
+Gemini Integration
+
+
+
+Gemini receives
+
+
+
+Business Name
+
+
+
+Business Type
+
+
+
+Phone Number
+
+
+
+Language
+
+
+
+Gemini only returns
+
+
+
+Business Name
+
+
+
+Primary Color
+
+
+
+Tagline
+
+
+
+Short Description
+
+
+
+Template Selection
+
+
+
+DO NOT ask Gemini to generate HTML.
+
+
+
+Simply populate the templates.
+
+
+
+If Business Type contains
+
+
+
+Water
+
+
+
+Load Water Plant Template.
+
+
+
+Otherwise
+
+
+
+Load Generic Template.
+
+
+
+Change
+
+
+
+Business Name
+
+
+
+Primary Color
+
+
+
+Tagline
+
+
+
+About Section
+
+
+
+Phone Number
+
+
+
+Business Category
+
+
+
+------------------------------------------------
+
+
+
+Preview
+
+
+
+Display Website Preview.
+
+
+
+Display CRM Preview.
+
+
+
+Simple responsive cards.
+
+
+
+No editing required.
+
+
+
+No deployment required.
+
+
+
+Preview inside the application is enough.
+
+Continue the project.
+
+
+
+Do NOT redesign previous pages.
+
+
+
+Keep all existing functionality.
+
+
+
+Now build the remaining MVP pages.
+
+
+
+------------------------------------------------
+
+
+
+1. WhatsApp
+
+
+
+Simple page.
+
+
+
+One card.
+
+
+
+Button
+
+
+
+Open WhatsApp
+
+
+
+When clicked
+
+
+
+Open WhatsApp using
+
+
+
+https://wa.me/
+
+
+
+Prefilled message
+
+
+
+Hello,
+
+
+
+Your order has been confirmed.
+
+
+
+Thank you.
+
+
+
+Use a dummy phone number.
+
+
+
+------------------------------------------------
+
+
+
+2. Learning Center
+
+
+
+Create categories.
+
+
+
+Marketing
+
+
+
+CRM
+
+
+
+Google Business
+
+
+
+WhatsApp Business
+
+
+
+Digital Payments
+
+
+
+Use a simple array.
+
+
+
+I will replace YouTube links later.
+
+
+
+Display embedded YouTube videos.
+
+
+
+Responsive grid.
+
+
+
+------------------------------------------------
+
+
+
+3. Government Schemes
+
+
+
+Create static cards.
+
+
+
+Mudra Loan
+
+
+
+PMEGP
+
+
+
+Udyam Registration
+
+
+
+Digital MSME
+
+
+
+Each card
+
+
+
+Title
+
+
+
+Eligibility
+
+
+
+Benefits
+
+
+
+Apply Button
+
+
+
+Dummy data only.
+
+
+
+------------------------------------------------
+
+
+
+4. AI Insights Dashboard
+
+
+
+Professional Dashboard.
+
+
+
+Cards
+
+
+
+Today's Revenue
+
+
+
+Monthly Sales
+
+
+
+Orders
+
+
+
+Customers
+
+
+
+Charts
+
+
+
+Pie Chart
+
+
+
+Bar Chart
+
+
+
+Line Chart
+
+
+
+Use dummy data.
+
+
+
+AI Insights Panel
+
+
+
+Generate static insights.
+
+
+
+Examples
+
+
+
+Sales increased 18%
+
+
+
+Peak Orders
+
+
+
+6PM–8PM
+
+
+
+Most Selling Product
+
+
+
+Water Can
+
+
+
+Recommendation
+
+
+
+Offer Tuesday Discount
+
+
+
+Business Health Score
+
+
+
+78 / 100
+
+
+
+Show progress bar.
+
+
+
+Growth Roadmap
+
+
+
+Week 1
+
+
+
+Launch Website
+
+
+
+Week 2
+
+
+
+Enable WhatsApp
+
+
+
+Week 3
+
+
+
+Collect Google Reviews
+
+
+
+Week 4
+
+
+
+Run Festival Offers
+
+
+
+Everything can use static data.
+
+
+
+This is only an MVP.
+
+
