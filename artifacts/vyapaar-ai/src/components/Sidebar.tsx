@@ -46,7 +46,7 @@ export function Sidebar() {
   return (
     <>
       <button 
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-sidebar rounded-md text-sidebar-foreground"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-sidebar rounded-md text-sidebar-foreground border border-sidebar-border shadow-sm"
         onClick={() => setIsOpen(!isOpen)}
         data-testid="button-toggle-sidebar"
       >
@@ -54,63 +54,66 @@ export function Sidebar() {
       </button>
 
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-sidebar border-r border-sidebar-border
-        transform transition-transform duration-200 ease-in-out flex flex-col
+        fixed inset-y-0 left-0 z-40 w-72 bg-sidebar border-r border-sidebar-border
+        transform transition-transform duration-300 ease-in-out flex flex-col
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        md:translate-x-0 md:static md:w-64
+        md:translate-x-0 md:static md:w-72 shadow-xl md:shadow-none
       `}>
-        <div className="p-6 border-b border-sidebar-border">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <div className="p-6 border-b border-sidebar-border flex items-center gap-3">
+          <div className="bg-primary/10 p-2 rounded-lg text-primary">
+            <Bot size={24} />
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
             Vyapaar AI
           </h2>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4">
-          <ul className="space-y-1 px-3">
+        <div className="relative flex-1 overflow-hidden flex flex-col">
+          <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 z-10 pb-12">
             {NAV_ITEMS.map((item) => {
               const isActive = location === item.path;
               return (
-                <li key={item.path}>
-                  <Link href={item.path} className="block">
-                    <div 
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                        isActive 
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
-                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                      }`}
-                      onClick={() => setIsOpen(false)}
-                      data-testid={`link-sidebar-${item.name.toLowerCase().replace(" ", "-")}`}
-                    >
-                      <item.icon size={20} className={isActive ? "text-primary" : ""} />
-                      <span>{item.name}</span>
-                    </div>
-                  </Link>
-                </li>
+                <Link key={item.path} href={item.path} className="block">
+                  <div 
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
+                      isActive 
+                        ? "bg-gradient-to-r from-primary/15 to-transparent text-primary border-l-4 border-primary shadow-sm" 
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground border-l-4 border-transparent"
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                    data-testid={`link-sidebar-${item.name.toLowerCase().replace(" ", "-")}`}
+                  >
+                    <item.icon size={20} className={isActive ? "text-primary" : "text-muted-foreground"} />
+                    <span>{item.name}</span>
+                  </div>
+                </Link>
               );
             })}
-          </ul>
-        </nav>
+          </nav>
+          {/* Bottom scroll gradient */}
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-sidebar to-transparent pointer-events-none z-20" />
+        </div>
 
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 mb-4 px-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+        <div className="p-5 border-t border-sidebar-border bg-sidebar/50">
+          <div className="flex items-center gap-3 mb-5 px-2">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
               {user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-bold text-foreground truncate">
                 {user?.displayName || "User"}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs text-muted-foreground truncate font-medium">
                 {user?.email}
               </p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 rounded-xl transition-all font-medium group"
             data-testid="button-logout"
           >
-            <LogOut size={20} />
+            <LogOut size={18} className="group-hover:text-destructive transition-colors" />
             <span>Logout</span>
           </button>
         </div>
@@ -119,7 +122,7 @@ export function Sidebar() {
       {/* Overlay for mobile */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden"
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
