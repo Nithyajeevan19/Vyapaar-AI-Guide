@@ -3,27 +3,22 @@ import { BookOpen, PlayCircle, Search } from "lucide-react";
 import { motion } from "framer-motion";
 
 const CATEGORIES = [
-  { name: "Marketing", videos: [
-    { title: "Digital Marketing Basics for Small Business", url: "https://www.youtube.com/embed/bixR-KIJKYM" },
-    { title: "Social Media Strategy Masterclass", url: "https://www.youtube.com/embed/2C6wkpBt0bE" },
-  ]},
   { name: "CRM", videos: [
-    { title: "What is CRM and How It Helps You?", url: "https://www.youtube.com/embed/Htyl4d_HF7A" },
-    { title: "CRM Setup Guide for Beginners", url: "https://www.youtube.com/embed/tJhzMIzJrSI" },
+    { title: "What Is CRM? | Introduction To CRM Software", url: "https://www.youtube.com/embed/sQD7kaZ5h0s?si=akqCj53MvRMWzHW4" },
+    { title: "CRM Tutorial for Beginners | Step-by-Step Guide", url: "https://www.youtube.com/embed/jibQ60PlZhs?si=UkdI_lgfTSQ60ENP" },
   ]},
-  { name: "Google Business", videos: [
-    { title: "Google My Business Complete Setup", url: "https://www.youtube.com/embed/Cp8b9RBezDs" },
-    { title: "How to Get More Google Reviews", url: "https://www.youtube.com/embed/pEiCNNpBF0I" },
+  { name: "Marketing", videos: [
+    { title: "Digital Marketing for Small Businesses | Get More Leads", url: "https://www.youtube.com/embed/Q4NujwJ_mhY?si=p6Rtz2Zqp9pmbe7W" },
   ]},
-  { name: "WhatsApp Business", videos: [
-    { title: "WhatsApp Business App Setup Tutorial", url: "https://www.youtube.com/embed/3jw-fGaYPWE" },
-    { title: "Advanced WhatsApp Business Features", url: "https://www.youtube.com/embed/V5DtOE-noZA" },
+  { name: "WhatsApp Automation", videos: [
+    { title: "How to Use WhatsApp Business Account (Full Course)", url: "https://www.youtube.com/embed/YI2qPPP-3OY?si=eQnu037kdrMUn0yO" },
   ]},
-  { name: "Digital Payments", videos: [
-    { title: "UPI for Business - Complete Guide", url: "https://www.youtube.com/embed/7zrMlKOdqPQ" },
-    { title: "PhonePe for Merchants Setup", url: "https://www.youtube.com/embed/nLijPQh2h1g" },
+  { name: "Payments Methods", videos: [
+    { title: "Types of Digital Payments | Digital Payments System", url: "https://www.youtube.com/embed/2ugB_KI7ZR8?si=jIbpaCmXgLJs448F" },
+    { title: "Types of Digital Payments | How Digital Payments Work", url: "https://www.youtube.com/embed/W3CGCAEWobk?si=obhRnUrDzI0rFd7Z" },
   ]},
 ];
+
 
 export default function LearningPage() {
   const [activeCategory, setActiveCategory] = useState("All");
