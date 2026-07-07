@@ -21,6 +21,7 @@ import WhatsAppPage from "./pages/WhatsAppPage";
 import LearningPage from "./pages/LearningPage";
 import SchemesPage from "./pages/SchemesPage";
 import InsightsPage from "./pages/InsightsPage";
+import MarketingPage from "./pages/MarketingPage";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,12 @@ function Router() {
       <Route path="/insights">
         <Layout>
           <InsightsPage />
+        </Layout>
+      </Route>
+
+      <Route path="/marketing">
+        <Layout>
+          <MarketingPage />
         </Layout>
       </Route>
 
