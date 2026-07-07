@@ -8,7 +8,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-bussiness-consultant",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-bussiness-consultant.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "38352656462",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:38352656462:web:1226d72b9e56eedcedcb1f"
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:38352656462:web:138c6dae01f2808eedcb1f"
 };
 
 
