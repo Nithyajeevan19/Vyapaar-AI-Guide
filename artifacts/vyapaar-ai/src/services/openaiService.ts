@@ -1,36 +1,23 @@
+import { getOpenAICompletion } from "@workspace/api-client-react";
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-export async function generateChatResponse(messages: ChatMessage[]) {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error("OpenAI API Key is missing!");
-  }
-
+export async function generateChatResponse(messages: ChatMessage[]): Promise<string> {
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages,
-        max_tokens: 150,
-      }),
+    const data = await getOpenAICompletion({
+      messages,
     });
 
-    if (!response.ok) {
-      throw new Error(`OpenAI error: ${response.statusText}`);
+    if (!data.choices || data.choices.length === 0 || !data.choices[0].message) {
+      throw new Error("No choices returned from the secure OpenAI completion proxy endpoint.");
     }
 
-    const data = await response.json();
-    return data.choices[0].message.content as string;
+    return data.choices[0].message.content || "";
   } catch (error) {
-    console.error("OpenAI API call failed", error);
+    console.error("OpenAI API proxy call failed:", error);
     throw error;
   }
 }

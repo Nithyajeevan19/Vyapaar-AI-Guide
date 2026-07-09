@@ -16,14 +16,18 @@ import { FcGoogle } from "react-icons/fc";
 
 async function resolveRoute(uid: string): Promise<string> {
   try {
-    const snap = await getDoc(doc(db, "users", uid));
-    const lang = snap.data()?.language;
-    if (lang === "en" || lang === "te") {
-      localStorage.setItem("vyapaar_lang", lang);
-      return "/dashboard";
+    const getDocPromise = getDoc(doc(db, "users", uid));
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+    const snap = await Promise.race([getDocPromise, timeoutPromise]);
+    if (snap) {
+      const lang = snap.data()?.language;
+      if (lang === "en" || lang === "te") {
+        localStorage.setItem("vyapaar_lang", lang);
+        return "/dashboard";
+      }
     }
   } catch {}
-  return "/language";
+  return "/languages";
 }
 
 export default function LoginPage() {

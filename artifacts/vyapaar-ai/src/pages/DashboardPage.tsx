@@ -2,54 +2,49 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "../hooks/useAuth";
 import { useLanguage } from "../hooks/useLanguage";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
-import { Bot, Globe, Users, MessageCircle, Lock, ArrowRight, Building2, Zap, LineChart } from "lucide-react";
+import { useGetBusinessProfile, useListOrganizations } from "@workspace/api-client-react";
+import { Bot, Globe, Users, MessageCircle, ArrowRight, Building2, Zap, LineChart } from "lucide-react";
 import { motion } from "framer-motion";
 import { SkeletonCard } from "../components/SkeletonCard";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
+  // API query hooks
+  const { data: orgs } = useListOrganizations({
+    query: { enabled: !!user } as any
+  });
+  const { data: profile, isLoading: loadingProfile } = useGetBusinessProfile(
+    { orgId: 1 },
+    { query: { enabled: !!user } as any }
+  );
+
   const [businessInfo, setBusinessInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Timeout guard: never stay stuck in loading for more than 5 seconds
-    const timeout = setTimeout(() => setLoading(false), 5000);
+  const firstOrgName = orgs?.[0]?.name;
 
-    async function fetchBusiness() {
-      // First check localStorage for instant load
+  useEffect(() => {
+    if (loadingProfile) return;
+    
+    if (profile && profile.category) {
+      setBusinessInfo({
+        name: firstOrgName || "My Business",
+        type: profile.category,
+        serviceType: profile.tagline || "Service Provider",
+      });
+      setLoading(false);
+    } else {
+      // Fallback to local storage setup profile
       try {
         const cached = localStorage.getItem("vyapaar_business_info");
         if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.name) {
-            setBusinessInfo(parsed);
-            clearTimeout(timeout);
-            setLoading(false);
-            return;
-          }
+          setBusinessInfo(JSON.parse(cached));
         }
       } catch {}
-
-      if (user) {
-        try {
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && docSnap.data().businessInfo) {
-            const info = docSnap.data().businessInfo;
-            setBusinessInfo(info);
-            try { localStorage.setItem("vyapaar_business_info", JSON.stringify(info)); } catch {}
-          }
-        } catch {}
-      }
-      clearTimeout(timeout);
       setLoading(false);
     }
-    fetchBusiness();
-    return () => clearTimeout(timeout);
-  }, [user]);
+  }, [profile, firstOrgName, loadingProfile]);
 
   const greeting = language === "te" ? "నమస్తే" : "Namaste";
   const userInitial = user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U";
@@ -151,13 +146,13 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <h3 className="text-xl md:text-2xl font-bold mb-6">Upcoming Features</h3>
+        <h3 className="text-xl md:text-2xl font-bold mb-6">Core Business Modules</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[
-            { title: "Website", icon: Globe, path: "/website", color: "text-blue-500", bg: "bg-blue-500/10" },
-            { title: "CRM", icon: Users, path: "/crm", color: "text-purple-500", bg: "bg-purple-500/10" },
-            { title: "WhatsApp", icon: MessageCircle, path: "/whatsapp", color: "text-green-500", bg: "bg-green-500/10" },
-            { title: "Insights", icon: LineChart, path: "/insights", color: "text-orange-500", bg: "bg-orange-500/10" },
+            { title: "Website", icon: Globe, path: "/website", color: "text-blue-500", bg: "bg-blue-500/10", desc: "Digital storefront & ordering" },
+            { title: "CRM", icon: Users, path: "/crm", color: "text-purple-500", bg: "bg-purple-500/10", desc: "Lead pipelines & customers" },
+            { title: "WhatsApp", icon: MessageCircle, path: "/whatsapp", color: "text-green-500", bg: "bg-green-500/10", desc: "Automated customer chat" },
+            { title: "Insights", icon: LineChart, path: "/insights", color: "text-orange-500", bg: "bg-orange-500/10", desc: "AI performance analytics" },
           ].map((feature, i) => (
             <Link key={i} href={feature.path}>
               <motion.div 
@@ -170,10 +165,9 @@ export default function DashboardPage() {
                   <div className={`p-3 rounded-xl transition-colors ${feature.bg} ${feature.color}`}>
                     <feature.icon size={24} />
                   </div>
-                  <Lock size={16} className="text-muted-foreground/40" />
                 </div>
                 <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{feature.title}</h4>
-                <p className="text-sm text-muted-foreground mt-1">Coming Soon</p>
+                <p className="text-sm text-muted-foreground mt-1">{feature.desc}</p>
               </motion.div>
             </Link>
           ))}

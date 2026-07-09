@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useAuth } from "../hooks/useAuth";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase/config";
-import { generateMarketingContent, MarketingContent } from "../services/marketingService";
+import { 
+  useGetBusinessProfile, 
+  useListOrganizations 
+} from "@workspace/api-client-react";
+import { generateMarketingChatReply, MarketingMessage } from "../services/marketingService";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Megaphone,
@@ -14,7 +16,12 @@ import {
   CheckCheck,
   Sparkles,
   AlertCircle,
-  RefreshCw,
+  Send,
+  Loader2,
+  Bot,
+  User,
+  PlusCircle,
+  HelpCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SkeletonCard } from "../components/SkeletonCard";
@@ -36,17 +43,18 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border border-border hover:border-primary/50 bg-muted/50 hover:bg-primary/5 text-muted-foreground hover:text-primary"
+      type="button"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border border-border hover:border-primary/50 bg-muted/50 hover:bg-primary/5 text-muted-foreground hover:text-primary cursor-pointer"
     >
       {copied ? (
         <>
           <CheckCheck size={13} className="text-green-500" />
-          <span className="text-green-500">Copied!</span>
+          <span className="text-green-500 font-sans">Copied!</span>
         </>
       ) : (
         <>
           <Copy size={13} />
-          Copy
+          <span className="font-sans">Copy</span>
         </>
       )}
     </button>
@@ -55,76 +63,24 @@ function CopyButton({ text }: { text: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function MarketingPage() {
-  const { user } = useAuth();
+  const { currentOrgId: orgId } = useAuth();
   const { toast } = useToast();
 
-  const [loading, setLoading] = useState(true);
-  const [businessInfo, setBusinessInfo] = useState<any>(null);
+  const [input, setInput] = useState("");
   const [generating, setGenerating] = useState(false);
-  const [content, setContent] = useState<MarketingContent | null>(null);
-
-  // ── Load business info ─────────────────────────────────────────────────────
-  useEffect(() => {
-    const timeout = setTimeout(() => setLoading(false), 5000);
-
-    async function fetchBusinessInfo() {
-      try {
-        const cached = localStorage.getItem("vyapaar_business_info");
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed?.name) {
-            setBusinessInfo(parsed);
-            clearTimeout(timeout);
-            setLoading(false);
-            return;
-          }
-        }
-      } catch {}
-
-      if (user) {
-        try {
-          const docRef = doc(db, "users", user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && docSnap.data().businessInfo) {
-            const info = docSnap.data().businessInfo;
-            setBusinessInfo(info);
-            try { localStorage.setItem("vyapaar_business_info", JSON.stringify(info)); } catch {}
-          }
-        } catch {}
-      }
-      clearTimeout(timeout);
-      setLoading(false);
+  const [messages, setMessages] = useState<MarketingMessage[]>([
+    {
+      role: "assistant",
+      content: `Hello! I am your social media marketing assistant. Describe what you'd like to create: e.g. "write me an Instagram post for a Diwali discount" or "give me a WhatsApp promo for a weekend special"!`,
+      intent: "clarify"
     }
+  ]);
 
-    fetchBusinessInfo();
-    return () => clearTimeout(timeout);
-  }, [user]);
+  // Load business info from dynamic DB queries
+  const { data: orgs = [], isLoading: loadingOrgs } = useListOrganizations();
+  const { data: profile, isLoading: loadingProfile } = useGetBusinessProfile({ orgId });
 
-  // ── Generate content ───────────────────────────────────────────────────────
-  const handleGenerate = async () => {
-    if (!businessInfo) return;
-    setGenerating(true);
-    setContent(null);
-    try {
-      const result = await generateMarketingContent(
-        businessInfo.name,
-        businessInfo.type,
-        businessInfo.serviceType || "both"
-      );
-      setContent(result);
-    } catch {
-      toast({
-        title: "Error",
-        description: "Failed to generate marketing content. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  // ── Loading state ──────────────────────────────────────────────────────────
-  if (loading) {
+  if (loadingOrgs || loadingProfile) {
     return (
       <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-6">
         <SkeletonCard className="h-32" />
@@ -133,233 +89,214 @@ export default function MarketingPage() {
     );
   }
 
-  // ── No business info ───────────────────────────────────────────────────────
-  if (!businessInfo) {
-    return (
-      <div className="p-4 md:p-6 max-w-2xl mx-auto mt-10">
-        <div className="bg-card border border-card-border rounded-2xl p-8 text-center shadow-sm">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-amber-500/10 text-amber-500 mb-6">
-            <AlertCircle size={40} />
-          </div>
-          <h2 className="text-2xl font-bold mb-4">Complete AI Setup First</h2>
-          <p className="text-muted-foreground mb-8 text-lg">
-            We need your business details to generate marketing content.
-          </p>
-          <Link href="/ai-setup">
-            <button className="px-8 py-4 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all shadow-md">
-              Go to AI Setup
-            </button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const activeOrgName = orgs.find((o: any) => o.id === orgId)?.name || "Srinivasa Kirana Store";
+  const businessInfo = {
+    name: activeOrgName,
+    type: profile?.category || "Kirana Store",
+    serviceType: "both"
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || generating) return;
+
+    const userText = input;
+    setInput("");
+
+    // Append user message
+    const nextMessages = [...messages, { role: "user", content: userText } as MarketingMessage];
+    setMessages(nextMessages);
+    setGenerating(true);
+
+    try {
+      const response = await generateMarketingChatReply(
+        nextMessages.map(m => ({ role: m.role, content: m.content })),
+        businessInfo.name,
+        businessInfo.type,
+        businessInfo.serviceType
+      );
+
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content: response.chatReply,
+          intent: response.intent,
+          contentData: response.contentData
+        }
+      ]);
+    } catch (err: any) {
+      toast({
+        title: "Generation Failed",
+        description: err.message || "Failed to process message with marketing expert.",
+        variant: "destructive"
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="p-4 md:p-8 max-w-5xl mx-auto"
+      className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 font-sans"
     >
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
+      {/* Header Banner */}
+      <div className="flex justify-between items-center pb-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-primary/10 text-primary rounded-2xl">
             <Megaphone size={24} />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold">Marketing Kit</h1>
-        </div>
-        <p className="text-muted-foreground text-base ml-14">
-          AI-generated marketing content for{" "}
-          <span className="font-semibold text-foreground">{businessInfo.name}</span>
-        </p>
-      </div>
-
-      {/* Business info banner */}
-      <div className="bg-card border border-card-border rounded-2xl p-5 mb-8 flex items-center justify-between gap-4 flex-wrap shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-            {businessInfo.name?.[0]?.toUpperCase() || "B"}
-          </div>
           <div>
-            <p className="font-bold text-foreground">{businessInfo.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {businessInfo.type} · {businessInfo.serviceType}
+            <h1 className="text-3xl font-black font-display tracking-tight text-foreground">Marketing Kit</h1>
+            <p className="text-xs text-muted-foreground font-sans mt-0.5">
+              Chat-driven branding copy, Instagram posts, Reel script concepts, and WhatsApp promos.
             </p>
           </div>
         </div>
-
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-          data-testid="button-generate-marketing"
-        >
-          {generating ? (
-            <>
-              <RefreshCw size={18} className="animate-spin" />
-              Generating…
-            </>
-          ) : (
-            <>
-              <Sparkles size={18} />
-              {content ? "Regenerate" : "Generate Marketing Content"}
-            </>
-          )}
-        </button>
       </div>
 
-      {/* Generating state */}
-      <AnimatePresence mode="wait">
-        {generating && (
-          <motion.div
-            key="generating"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-24 text-center"
-          >
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary relative z-10" />
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" size={20} />
-            </div>
-            <p className="text-xl font-bold mb-2">Crafting your marketing kit…</p>
-            <p className="text-muted-foreground animate-pulse">Generating posts, promos & video ideas.</p>
-          </motion.div>
-        )}
+      {/* active business info banner */}
+      <div className="bg-card border border-card-border rounded-2xl p-4 flex items-center gap-3 shadow-card">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg font-display">
+          {businessInfo.name[0]?.toUpperCase()}
+        </div>
+        <div>
+          <p className="font-bold text-foreground text-sm">{businessInfo.name}</p>
+          <p className="text-xs text-muted-foreground font-sans">
+            {businessInfo.type} · Active Scoped Organization
+          </p>
+        </div>
+      </div>
 
-        {/* Empty state — prompt to generate */}
-        {!generating && !content && (
-          <motion.div
-            key="empty"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="py-16 flex flex-col items-center text-center"
-          >
-            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <Megaphone size={44} className="text-primary/60" />
-            </div>
-            <h2 className="text-2xl font-bold mb-3">Ready to promote your business?</h2>
-            <p className="text-muted-foreground max-w-md mb-8">
-              Click <strong>"Generate Marketing Content"</strong> above and we'll create Instagram posts, a WhatsApp promo, and a video script idea — all tailored for <strong>{businessInfo.name}</strong>.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              {[
-                { icon: Instagram, label: "2 Instagram Posts" },
-                { icon: MessageCircle, label: "WhatsApp Promo" },
-                { icon: Video, label: "Video Script Idea" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 px-4 py-2 bg-card border border-card-border rounded-full text-sm font-medium text-muted-foreground shadow-sm">
-                  <Icon size={16} className="text-primary" />
-                  {label}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+      {/* Conversational Chat Thread Box */}
+      <div className="bg-card border border-card-border rounded-3xl p-4 md:p-6 shadow-card flex flex-col h-[500px]">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin">
+          <AnimatePresence initial={false}>
+            {messages.map((msg, index) => {
+              const isAssistant = msg.role === "assistant";
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={`flex gap-3 max-w-[85%] ${isAssistant ? "mr-auto" : "ml-auto flex-row-reverse"}`}
+                >
+                  {/* Bubble Avatars */}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center border shrink-0 ${
+                    isAssistant ? "bg-primary/15 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border"
+                  }`}>
+                    {isAssistant ? <Bot size={15} /> : <User size={15} />}
+                  </div>
 
-        {/* Generated content */}
-        {!generating && content && (
-          <motion.div
-            key="content"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="space-y-6"
-          >
-            {/* Instagram Posts */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Instagram size={20} className="text-pink-500" />
-                <h2 className="text-xl font-bold">Instagram Posts</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {content.instaPosts.map((post, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.08 }}
-                    className="bg-card border border-card-border rounded-2xl p-5 shadow-sm flex flex-col gap-3 hover:border-pink-300/60 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
-                          <Instagram size={16} className="text-white" />
-                        </div>
-                        <span className="text-sm font-semibold text-muted-foreground">Post {i + 1}</span>
+                  <div className="space-y-3">
+                    {/* Chat Reply Bubble */}
+                    <div className={`p-3.5 rounded-2xl text-sm font-sans leading-relaxed shadow-sm border ${
+                      isAssistant 
+                        ? "bg-muted/30 text-foreground border-border rounded-tl-none" 
+                        : "bg-primary text-primary-foreground border-primary rounded-tr-none"
+                    }`}>
+                      {msg.content}
+                    </div>
+
+                    {/* Structured Structured Card elements */}
+                    {isAssistant && msg.contentData && (
+                      <div className="space-y-3 pt-1">
+                        
+                        {/* 1. Instagram Post Option */}
+                        {msg.intent === "instagram" && msg.contentData.caption && (
+                          <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3 text-xs w-[320px] sm:w-[400px]">
+                            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                              <span className="font-bold text-foreground flex items-center gap-1 font-display">
+                                <Instagram size={14} className="text-pink-500" /> Instagram Post Copy
+                              </span>
+                              <CopyButton text={`${msg.contentData.caption}\n\n${msg.contentData.hashtags || ""}`} />
+                            </div>
+                            <p className="text-muted-foreground font-sans leading-relaxed whitespace-pre-line">{msg.contentData.caption}</p>
+                            {msg.contentData.hashtags && (
+                              <p className="text-primary font-mono text-[10px] leading-relaxed">{msg.contentData.hashtags}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 2. Reels Script Option */}
+                        {msg.intent === "reel" && msg.contentData.script && (
+                          <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3 text-xs w-[320px] sm:w-[400px]">
+                            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                              <span className="font-bold text-foreground flex items-center gap-1 font-display">
+                                <Video size={14} className="text-indigo-500" /> Reel Script & Concept
+                              </span>
+                              <CopyButton text={`Concept: ${msg.contentData.concept}\n\nScript:\n${msg.contentData.script}`} />
+                            </div>
+                            {msg.contentData.concept && (
+                              <div>
+                                <span className="font-bold text-foreground block font-sans">Visual Concept</span>
+                                <p className="text-muted-foreground font-sans mt-0.5">{msg.contentData.concept}</p>
+                              </div>
+                            )}
+                            <div>
+                              <span className="font-bold text-foreground block font-sans">Script Timestamps</span>
+                              <p className="text-muted-foreground font-sans leading-relaxed whitespace-pre-line mt-0.5">{msg.contentData.script}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 3. WhatsApp Promo Option */}
+                        {msg.intent === "whatsapp" && msg.contentData.message && (
+                          <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm space-y-3 text-xs w-[320px] sm:w-[400px]">
+                            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                              <span className="font-bold text-foreground flex items-center gap-1 font-display">
+                                <MessageCircle size={14} className="text-emerald-500" /> WhatsApp Message
+                              </span>
+                              <CopyButton text={msg.contentData.message} />
+                            </div>
+                            <p className="text-muted-foreground font-sans leading-relaxed whitespace-pre-line">{msg.contentData.message}</p>
+                          </div>
+                        )}
+                        
                       </div>
-                      <CopyButton text={`${post.caption}\n\n${post.hashtags}`} />
-                    </div>
-                    <p className="text-sm leading-relaxed whitespace-pre-line text-foreground">{post.caption}</p>
-                    <p className="text-xs text-blue-500 font-medium leading-relaxed">{post.hashtags}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* WhatsApp Promo */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.16 }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <MessageCircle size={20} className="text-green-500" />
-                <h2 className="text-xl font-bold">WhatsApp Promo</h2>
-              </div>
-              <div className="bg-card border border-card-border rounded-2xl p-5 shadow-sm hover:border-green-300/60 transition-colors">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                      <MessageCircle size={16} className="text-white" />
-                    </div>
-                    <span className="text-sm font-semibold text-muted-foreground">Ready to send</span>
+                    )}
                   </div>
-                  <CopyButton text={content.whatsappPromo} />
-                </div>
-                <div className="bg-[#dcf8c6] dark:bg-green-900/30 rounded-xl rounded-tl-sm p-4 text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-line shadow-sm max-w-md">
-                  {content.whatsappPromo}
-                </div>
-              </div>
-            </motion.div>
+                </motion.div>
+              );
+            })}
 
-            {/* Video Script Idea */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.24 }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Video size={20} className="text-primary" />
-                <h2 className="text-xl font-bold">Reel / Video Script Idea</h2>
-              </div>
-              <div className="bg-card border border-card-border rounded-2xl p-5 shadow-sm hover:border-primary/30 transition-colors">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                      <Video size={16} />
-                    </div>
-                    <span className="text-sm font-semibold text-muted-foreground">Short-form video concept</span>
-                  </div>
-                  <CopyButton text={content.videoScriptIdea} />
+            {generating && (
+              <div className="flex gap-3 max-w-[85%] mr-auto items-center">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center animate-pulse">
+                  <Bot size={15} />
                 </div>
-                <div className="bg-muted/60 rounded-xl p-4 text-sm text-foreground leading-relaxed whitespace-pre-line font-mono border border-border/60">
-                  {content.videoScriptIdea}
+                <div className="bg-muted/20 border border-border px-4 py-2.5 rounded-2xl rounded-tl-none text-xs flex items-center gap-2">
+                  <Loader2 className="animate-spin text-primary" size={14} />
+                  <span className="font-sans text-muted-foreground">Expert assistant drafting options...</span>
                 </div>
               </div>
-            </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-            {/* Footer note */}
-            <p className="text-xs text-muted-foreground text-center pb-4 pt-2">
-              ✨ Content generated by AI · Click individual Copy buttons to copy each piece
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Input Bar Form */}
+        <form onSubmit={handleSend} className="border-t border-border pt-4 mt-4 flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={generating}
+            placeholder="Type e.g. 'instagram caption for fresh tomatoes' or 'whatsapp deal'..."
+            className="flex-1 bg-muted/20 border border-border px-4 py-3 rounded-2xl text-sm outline-none focus:border-primary text-foreground font-sans"
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || generating}
+            className="p-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-95 transition-all shadow-card flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Send size={16} />
+          </button>
+        </form>
+      </div>
     </motion.div>
   );
 }

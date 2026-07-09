@@ -1,0 +1,266 @@
+{
+  "users": [
+    {
+      "id": "mock-user-1",
+      "email": "demo@vyapaar.ai",
+      "displayName": "Demo Owner"
+    }
+  ],
+  "organizations": [
+    {
+      "id": 1,
+      "name": "Srinivasa Kirana Store"
+    }
+  ],
+  "organizationMembers": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "userId": "mock-user-1",
+      "role": "owner"
+    }
+  ],
+  "branches": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "name": "Main Branch",
+      "location": "Kukatpally, Hyderabad"
+    }
+  ],
+  "businessProfiles": [
+    {
+      "orgId": 1,
+      "tagline": "Your daily grocery partner",
+      "primaryColor": "#4f46e5",
+      "shortDescription": "Srinivasa Kirana Store is a trusted retail grocery business serving quality food products and household essentials.",
+      "category": "Retail & Grocery",
+      "phone": "+919876543210",
+      "address": "H.No 12-34, Main Road, Kukatpally, Hyderabad, 500072",
+      "businessHours": {
+        "Monday": "9:00 AM - 9:00 PM",
+        "Tuesday": "9:00 AM - 9:00 PM",
+        "Wednesday": "9:00 AM - 9:00 PM",
+        "Thursday": "9:00 AM - 9:00 PM",
+        "Friday": "9:00 AM - 9:00 PM",
+        "Saturday": "9:00 AM - 9:00 PM",
+        "Sunday": "Closed"
+      }
+    }
+  ],
+  "industryProfiles": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "industryType": "retail",
+      "metadata": {}
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Rajesh Kumar",
+      "email": "rajesh@gmail.com",
+      "phone": "+919988776655",
+      "notes": "Regular milk customer"
+    },
+    {
+      "id": 2,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Pranitha Reddy",
+      "email": "pranitha@yahoo.com",
+      "phone": "+919944332211",
+      "notes": "Prefers home delivery"
+    }
+  ],
+  "leads": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "customerId": 1,
+      "source": "website",
+      "status": "contacted",
+      "notes": "Inquired about bulk rice bags delivery",
+      "assignedTo": "mock-user-1",
+      "createdAt": "2026-07-09T09:42:56.033Z"
+    },
+    {
+      "id": 2,
+      "orgId": 1,
+      "branchId": 1,
+      "customerId": 2,
+      "source": "whatsapp",
+      "status": "new",
+      "notes": "Wants weekly vegetable deliveries",
+      "assignedTo": "mock-user-1",
+      "createdAt": "2026-07-09T09:42:56.034Z"
+    }
+  ],
+  "inquiries": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Anil Sharma",
+      "email": "anil@gmail.com",
+      "phone": "+919876500111",
+      "message": "Do you deliver to Gachibowli?",
+      "status": "pending",
+      "createdAt": "2026-07-09T09:42:56.034Z"
+    }
+  ],
+  "staff": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Ramu",
+      "role": "Delivery Agent",
+      "phone": "+919111222333",
+      "email": "ramu@gmail.com"
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "title": "Deliver Rice Bag to Rajesh",
+      "description": "Deliver 25kg Sonamasuri bag",
+      "status": "todo",
+      "dueDate": "2026-07-10T09:42:56.034Z",
+      "assignedTo": "mock-user-1"
+    },
+    {
+      "id": 2,
+      "orgId": 1,
+      "branchId": 1,
+      "title": "Call Pranitha",
+      "description": "Confirm weekend delivery list",
+      "status": "todo",
+      "dueDate": "2026-07-11T09:42:56.034Z",
+      "assignedTo": "mock-user-1"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "name": "Sonamasuri Rice 25kg",
+      "description": "Premium aged white rice",
+      "price": 135000,
+      "sku": "RICE-SONA-25",
+      "stock": 15,
+      "category": "Grains"
+    },
+    {
+      "id": 2,
+      "orgId": 1,
+      "name": "Sunflower Oil 1L",
+      "description": "Refined healthy oil",
+      "price": 16000,
+      "sku": "OIL-SUN-1L",
+      "stock": 50,
+      "category": "Oils"
+    },
+    {
+      "id": 3,
+      "orgId": 1,
+      "name": "Toor Dal 1kg",
+      "description": "Unpolished organic dal",
+      "price": 18000,
+      "sku": "DAL-TOOR-1K",
+      "stock": 30,
+      "category": "Dals"
+    }
+  ],
+  "services": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "name": "Express Home Delivery",
+      "description": "Delivery within 2 hours",
+      "price": 5000,
+      "duration": 120
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "customerId": 1,
+      "status": "completed",
+      "totalAmount": 151000,
+      "paymentStatus": "paid",
+      "paymentMethod": "upi",
+      "type": "delivery",
+      "notes": "Doorstep delivery",
+      "createdAt": "2026-07-09T09:42:56.034Z"
+    }
+  ],
+  "orderItems": [
+    {
+      "id": 1,
+      "orderId": 1,
+      "productId": 1,
+      "quantity": 1,
+      "price": 135000
+    },
+    {
+      "id": 2,
+      "orderId": 1,
+      "productId": 2,
+      "quantity": 1,
+      "price": 16000
+    }
+  ],
+  "appointments": [],
+  "tickets": [],
+  "invoices": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": 1,
+      "orderId": 1,
+      "customerId": 1,
+      "invoiceNumber": "INV-2026-001",
+      "dueDate": "2026-07-09T09:42:56.034Z",
+      "status": "paid",
+      "subtotal": 151000,
+      "tax": 0,
+      "discount": 0,
+      "total": 151000,
+      "createdAt": "2026-07-09T09:42:56.034Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "invoiceId": 1,
+      "orderId": 1,
+      "amount": 151000,
+      "paymentMethod": "upi",
+      "transactionRef": "UTR9876543210",
+      "status": "success",
+      "createdAt": "2026-07-09T09:42:56.034Z"
+    }
+  ],
+  "marketingCampaigns": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "name": "Diwali Special Offer",
+      "type": "whatsapp",
+      "content": "Flat 10% off on all products at Srinivasa Stores!",
+      "status": "sent",
+      "createdAt": "2026-07-09T09:42:56.034Z"
+    }
+  ],
+  "aiConversations": {}
+}

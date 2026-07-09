@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -57,6 +57,7 @@
   --color-sidebar-accent-border: var(--sidebar-accent-border);
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
+  --font-display: var(--app-font-display);
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
@@ -92,6 +93,17 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-floating: var(--shadow-floating);
+
+  --transition-fast: var(--transition-fast);
+  --transition-smooth: var(--transition-smooth);
+  --transition-panel: var(--transition-panel);
+  --ease-out-expo: var(--ease-out-expo);
+  --ease-elastic: var(--ease-elastic);
 }
 
 :root {
@@ -111,11 +123,11 @@
   --sidebar: 220 45% 20%;           /* dark navy sidebar */
   --sidebar-foreground: 36 30% 94%; /* warm off-white text */
   --sidebar-border: 220 40% 28%;
-  --sidebar-primary: 40 90% 52%;    /* gold */
+  --sidebar-primary: 43 60% 48%;    /* rich gold */
   --sidebar-primary-foreground: 220 45% 12%;
   --sidebar-accent: 220 40% 30%;    /* slightly lighter navy */
   --sidebar-accent-foreground: 36 30% 94%;
-  --sidebar-ring: 40 90% 52%;
+  --sidebar-ring: 43 60% 48%;
   --popover: 0 0% 100%;
   --popover-foreground: 220 35% 14%;
   --popover-border: 220 20% 88%;
@@ -125,30 +137,37 @@
   --secondary-foreground: 220 35% 14%;
   --muted: 36 20% 93%;
   --muted-foreground: 220 15% 48%;
-  --accent: 40 90% 50%;             /* gold accent */
+  --accent: 43 60% 48%;             /* rich gold accent HSL(43, 60%, 48%) */
   --accent-foreground: 220 45% 12%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --input: 220 20% 88%;
-  --ring: 40 90% 50%;
+  --ring: 43 60% 48%;
   --chart-1: 220 60% 35%;
-  --chart-2: 40 90% 52%;
+  --chart-2: 43 60% 48%;
   --chart-3: 160 50% 38%;
   --chart-4: 280 50% 55%;
   --chart-5: 10 80% 55%;
 
-  --app-font-sans: 'Inter', 'Poppins', sans-serif;
-  --app-font-serif: Georgia, serif;
+  --app-font-sans: 'Manrope', 'Inter', sans-serif;
+  --app-font-display: 'Fraunces', Georgia, serif;
+  --app-font-serif: 'Fraunces', Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  --radius: .5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --radius: 0.75rem;
+
+  /* Subtle Elevation System - Luxury Warm & Navy Tinted Shadows */
+  --shadow-card: 0px 1px 3px 0px rgba(15, 23, 42, 0.02), 0px 4px 12px 0px rgba(15, 23, 42, 0.01);
+  --shadow-raised: 0px 4px 8px -2px rgba(15, 23, 42, 0.03), 0px 12px 24px -4px rgba(197, 160, 89, 0.03);
+  --shadow-modal: 0px 12px 24px -4px rgba(15, 23, 42, 0.05), 0px 24px 48px -8px rgba(197, 160, 89, 0.05);
+  --shadow-floating: 0px 4px 20px -2px rgba(15, 23, 42, 0.04), 0px 8px 30px -4px rgba(197, 160, 89, 0.06);
+
+  /* Micro-interactions: Duration & Easings */
+  --transition-fast: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-panel: all 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -184,15 +203,15 @@
   --sidebar: 220 45% 10%;
   --sidebar-foreground: 36 25% 90%;
   --sidebar-border: 220 35% 18%;
-  --sidebar-primary: 40 90% 52%;
+  --sidebar-primary: 43 60% 48%;
   --sidebar-primary-foreground: 220 45% 12%;
   --sidebar-accent: 220 38% 18%;
   --sidebar-accent-foreground: 36 25% 90%;
-  --sidebar-ring: 40 90% 52%;
+  --sidebar-ring: 43 60% 48%;
   --popover: 220 38% 12%;
   --popover-foreground: 36 20% 90%;
   --popover-border: 220 30% 20%;
-  --primary: 40 90% 52%;
+  --primary: 43 60% 48%;
   --primary-foreground: 220 45% 10%;
   --secondary: 220 35% 18%;
   --secondary-foreground: 36 20% 90%;
@@ -203,21 +222,17 @@
   --destructive: 0 62% 30%;
   --destructive-foreground: 36 20% 90%;
   --input: 220 30% 20%;
-  --ring: 40 90% 52%;
+  --ring: 43 60% 48%;
   --chart-1: 220 60% 50%;
-  --chart-2: 40 90% 55%;
+  --chart-2: 43 60% 48%;
   --chart-3: 160 55% 45%;
   --chart-4: 280 60% 60%;
   --chart-5: 10 75% 55%;
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-card: 0px 1px 3px 0px rgba(0, 0, 0, 0.2), 0px 4px 12px 0px rgba(0, 0, 0, 0.15);
+  --shadow-raised: 0px 4px 8px -2px rgba(0, 0, 0, 0.25), 0px 12px 24px -4px rgba(197, 160, 89, 0.05);
+  --shadow-modal: 0px 12px 24px -4px rgba(0, 0, 0, 0.3), 0px 24px 48px -8px rgba(197, 160, 89, 0.08);
+  --shadow-floating: 0px 4px 20px -2px rgba(0, 0, 0, 0.25), 0px 8px 30px -4px rgba(197, 160, 89, 0.1);
 }
 
 @layer base {

@@ -5,17 +5,45 @@ import { auth } from "../firebase/config";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  currentOrgId: number;
+  setCurrentOrgId: (id: number) => void;
+  currentBranchId: number;
+  setCurrentBranchId: (id: number) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  currentOrgId: 1,
+  setCurrentOrgId: () => {},
+  currentBranchId: 1,
+  setCurrentBranchId: () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   // Synchronously seed from currentUser so the spinner almost never shows
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [loading, setLoading] = useState(!auth.currentUser);
+
+  const [currentOrgId, setCurrentOrgIdState] = useState<number>(() => {
+    const cached = localStorage.getItem("vyapaar_current_org_id");
+    return cached ? parseInt(cached, 10) : 1;
+  });
+
+  const [currentBranchId, setCurrentBranchIdState] = useState<number>(() => {
+    const cached = localStorage.getItem("vyapaar_current_branch_id");
+    return cached ? parseInt(cached, 10) : 1;
+  });
+
+  const setCurrentOrgId = (id: number) => {
+    setCurrentOrgIdState(id);
+    localStorage.setItem("vyapaar_current_org_id", String(id));
+  };
+
+  const setCurrentBranchId = (id: number) => {
+    setCurrentBranchIdState(id);
+    localStorage.setItem("vyapaar_current_branch_id", String(id));
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -26,7 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        loading, 
+        currentOrgId, 
+        setCurrentOrgId, 
+        currentBranchId, 
+        setCurrentBranchId 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

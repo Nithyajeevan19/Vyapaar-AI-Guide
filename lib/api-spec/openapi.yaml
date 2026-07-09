@@ -1,15 +1,28 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Vyapaar AI API Specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: organizations
+    description: Organization management
+  - name: branches
+    description: Branch management
+  - name: crm
+    description: Customer Relationship Management
+  - name: commerce
+    description: Products, Services, Orders, and Payments
+  - name: ai
+    description: AI Assistant and Copilot integrations
+  - name: analytics
+    description: Business intelligence reports
 paths:
   /healthz:
     get:
@@ -24,6 +37,1250 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/sync:
+    post:
+      operationId: syncUser
+      tags: [auth]
+      summary: Sync User Auth Profile
+      description: Syncs Firebase authenticated user properties into PostgreSQL and configures default organization.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                email:
+                  type: string
+                displayName:
+                  type: string
+              required: [id, email]
+      responses:
+        "200":
+          description: User profile synchronized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    type: object
+                  organization:
+                    type: object
+                  branch:
+                    type: object
+
+  /organizations:
+    get:
+      operationId: listOrganizations
+      tags: [organizations]
+      summary: List User Organizations
+      description: Retrieves all organizations the authenticated user is a member of.
+      responses:
+        "200":
+          description: List of organizations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Organization"
+    post:
+      operationId: createOrganization
+      tags: [organizations]
+      summary: Create Organization
+      description: Creates a new business organization tenant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required: [name]
+      responses:
+        "200":
+          description: Organization created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
+  /organizations/{orgId}/switch:
+    post:
+      operationId: switchOrganization
+      tags: [organizations]
+      summary: Switch Active Organization
+      description: Selects active organization profile.
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Active organization switched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  orgId:
+                    type: integer
+
+  /branches:
+    get:
+      operationId: listBranches
+      tags: [branches]
+      summary: List Branches
+      description: Lists branches in active organization.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of branches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Branch"
+    post:
+      operationId: createBranch
+      tags: [branches]
+      summary: Create Branch
+      description: Creates a new branch for the active organization.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orgId:
+                  type: integer
+                name:
+                  type: string
+                location:
+                  type: string
+              required: [orgId, name]
+      responses:
+        "200":
+          description: Branch created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+
+  /business-profile:
+    get:
+      operationId: getBusinessProfile
+      tags: [organizations]
+      summary: Fetch Business Profile
+      description: Retrieves active organization business settings and branding details.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business profile details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessProfile"
+    put:
+      operationId: updateBusinessProfile
+      tags: [organizations]
+      summary: Update Business Profile
+      description: Updates branding configurations, address, and business hours.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusinessProfileInput"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessProfile"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [crm]
+      summary: List Customers
+      description: Retrieves customers associated with the active organization.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [crm]
+      summary: Create Customer
+      description: Adds a new customer profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "200":
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [crm]
+      summary: List Leads
+      description: Retrieves sales leads and pipelines.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+    post:
+      operationId: createLead
+      tags: [crm]
+      summary: Create Lead
+      description: Inserts a new lead card.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "200":
+          description: Lead created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{leadId}/status:
+    put:
+      operationId: updateLeadStatus
+      tags: [crm]
+      summary: Update Lead Pipeline Stage
+      description: Updates status stage of a sales lead.
+      parameters:
+        - name: leadId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+              required: [status]
+      responses:
+        "200":
+          description: Lead status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /inquiries:
+    get:
+      operationId: listInquiries
+      tags: [crm]
+      summary: List Public Site Inquiries
+      description: Retrieves contact submissions.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Inquiries list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Inquiry"
+    post:
+      operationId: submitInquiry
+      tags: [crm]
+      summary: Public Submit Inquiry
+      description: Captures inquiries submitted by external clients on the business mini website.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orgId:
+                  type: integer
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                message:
+                  type: string
+              required: [orgId, name]
+      responses:
+        "200":
+          description: Inquiry registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Inquiry"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [crm]
+      summary: List Tasks
+      description: Lists follow-up operational tasks.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [crm]
+      summary: Create Task
+      description: Creates a follow-up task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "200":
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [commerce]
+      summary: List Products
+      description: Retrieves catalog products.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [commerce]
+      summary: Create Product
+      description: Adds a new catalog product.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "200":
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /services:
+    get:
+      operationId: listServices
+      tags: [commerce]
+      summary: List Services
+      description: Retrieves catalog services.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Service list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+    post:
+      operationId: createService
+      tags: [commerce]
+      summary: Create Service
+      description: Adds a new catalog service.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "200":
+          description: Service created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [commerce]
+      summary: List Orders
+      description: Retrieves customer orders and transaction history.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [commerce]
+      summary: Place Order
+      description: Places a new customer order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "200":
+          description: Order placed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /appointments:
+    get:
+      operationId: listAppointments
+      tags: [commerce]
+      summary: List Appointments
+      description: Lists appointments (clinics, hospitality bookings, consultations).
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Appointment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+    post:
+      operationId: createAppointment
+      tags: [commerce]
+      summary: Book Appointment
+      description: Schedules a new booking.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentInput"
+      responses:
+        "200":
+          description: Appointment scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /tickets:
+    get:
+      operationId: listTickets
+      tags: [commerce]
+      summary: List Support Tickets
+      description: Lists service tickets or tasks.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ticket list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ticket"
+    post:
+      operationId: createTicket
+      tags: [commerce]
+      summary: Log Service Ticket
+      description: Enters a customer service ticket.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketInput"
+      responses:
+        "200":
+          description: Ticket logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [commerce]
+      summary: List Invoices
+      description: Lists customer invoices.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Invoice list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      tags: [commerce]
+      summary: Generate Invoice
+      description: Constructs a new invoice.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "200":
+          description: Invoice generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [commerce]
+      summary: List Payments
+      description: Retrieves transaction receipt history.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: recordPayment
+      tags: [commerce]
+      summary: Record Payment Transaction
+      description: Saves a payment receipt (e.g. cash, cards, bank, or UPI settlement).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "200":
+          description: Payment logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [ai]
+      summary: List Campaigns
+      description: Lists social or message outreach logs.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [ai]
+      summary: Create Campaign
+      description: Registers a marketing campaign.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignInput"
+      responses:
+        "200":
+          description: Campaign generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /copilot/chat:
+    post:
+      operationId: copilotChat
+      tags: [ai]
+      summary: Conversational Copilot Chat
+      description: Core endpoint to consult with the AI Copilot. Uses message history to structure context-aware business recommendations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                message:
+                  type: string
+              required: [userId, message]
+      responses:
+        "200":
+          description: Chat reply
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+
+  /copilot/onboarding:
+    post:
+      operationId: copilotOnboarding
+      tags: [ai]
+      summary: Onboarding Optimization Analyzer
+      description: Analyzes answers to compile industry presets, digital maturity details, and activated app modules.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName:
+                  type: string
+                businessType:
+                  type: string
+                serviceType:
+                  type: string
+                language:
+                  type: string
+              required: [businessName, businessType, serviceType]
+      responses:
+        "200":
+          description: Compiled organization preferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  industryType:
+                    type: string
+                  maturityScore:
+                    type: integer
+                  modules:
+                    type: array
+                    items:
+                      type: string
+                  tagline:
+                    type: string
+                  primaryColor:
+                    type: string
+                  description:
+                    type: string
+
+  /copilot/completion:
+    post:
+      operationId: getOpenAICompletion
+      tags: [ai]
+      summary: Get OpenAI Chat Completion
+      description: Securely generates a completion response from the backend OpenAI client.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [system, user, assistant]
+                      content:
+                        type: string
+                    required: [role, content]
+              required: [messages]
+      responses:
+        "200":
+          description: Completion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  choices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: object
+                          properties:
+                            role:
+                              type: string
+                            content:
+                              type: string
+                          required: [role, content]
+                      required: [message]
+                required: [choices]
+
+  /copilot/ocr-invoice:
+    post:
+      operationId: ocrInvoice
+      tags: [ai]
+      summary: Extract Invoice Items via OCR
+      description: Uploads a bill/invoice image and extracts lines, quantities, prices, and vendor info via multimodal AI.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+              required: [image]
+      responses:
+        "200":
+          description: Successfully extracted invoice parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vendorName:
+                    type: string
+                  date:
+                    type: string
+                  lineItems:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        quantity:
+                          type: number
+                        price:
+                          type: number
+                        total:
+                          type: number
+                      required: [name, quantity, price]
+                  total:
+                    type: number
+                required: [lineItems, total]
+
+  /analytics/dashboard:
+
+    get:
+      operationId: getAnalyticsDashboard
+      tags: [analytics]
+      summary: Get Analytics Dashboard Stats
+      description: Retrieves core KPIs, sales, CRM pipeline conversion numbers, and active comparisons.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analytics dashboard summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /analytics/forecast/inventory:
+    get:
+      operationId: getInventoryForecast
+      tags: [analytics]
+      summary: Predict Product Stockout Risks
+      description: Flags products likely to stock out in the next N days based on sales velocity.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Stockout risk predictions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    productId:
+                      type: integer
+                    name:
+                      type: string
+                    currentStock:
+                      type: integer
+                    velocity:
+                      type: number
+                    daysRemaining:
+                      type: integer
+                    riskLevel:
+                      type: string
+                  required: [productId, name, currentStock, velocity, daysRemaining, riskLevel]
+
+  /analytics/forecast/revenue:
+    get:
+      operationId: getRevenueForecast
+      tags: [analytics]
+      summary: Forecast Next Month's Revenue
+      description: Linear trend revenue forecasting projection with merchant warning caveats.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly revenue forecasting details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projectedRevenue:
+                    type: integer
+                  confidenceLevel:
+                    type: string
+                  caveat:
+                    type: string
+                  projectedMonth:
+                    type: string
+                  historicalTrend:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        month:
+                          type: string
+                        revenue:
+                          type: integer
+                      required: [month, revenue]
+                required: [projectedRevenue, confidenceLevel, caveat, projectedMonth, historicalTrend]
+
+  /knowledge/upload:
+    post:
+      operationId: uploadKnowledgeFile
+      tags: [knowledge]
+      summary: Upload Knowledge File
+      description: Uploads a PDF or text catalog file, generates embeddings, and indexes chunks.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        "200":
+          description: Document successfully indexed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  documentId:
+                    type: integer
+                required: [success, message, documentId]
+
+  /knowledge/query:
+    post:
+      operationId: queryKnowledge
+      tags: [knowledge]
+      summary: Query Knowledge Base
+      description: Query the scoped RAG knowledge base using a natural-language question.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: string
+                orgId:
+                  type: integer
+              required: [question, orgId]
+      responses:
+        "200":
+          description: grounded support assistant response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  answer:
+                    type: string
+                  sources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        filename:
+                          type: string
+                        contentText:
+                          type: string
+                        similarity:
+                          type: number
+                      required: [id, filename, contentText, similarity]
+                required: [answer, sources]
+
+  /knowledge/documents:
+    get:
+      operationId: listKnowledgeDocuments
+      tags: [knowledge]
+      summary: List Knowledge Documents
+      description: Retrieves the catalog files list.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    orgId:
+                      type: integer
+                    filename:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                  required: [id, orgId, filename]
+
+  /webhooks/whatsapp:
+    get:
+      operationId: verifyWhatsAppWebhook
+      tags: [webhooks]
+      summary: Verify WhatsApp Webhook
+      description: Handles challenge verification from the Meta Developer platform.
+      parameters:
+        - name: hub.mode
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: hub.verify_token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: hub.challenge
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Verification challenge string
+          content:
+            text/plain:
+              schema:
+                type: string
+
+    post:
+      operationId: receiveWhatsAppMessage
+      tags: [webhooks]
+      summary: Ingest WhatsApp Business Event
+      description: Receives and processes message hooks from WhatsApp API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Acknowledged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /webhooks/whatsapp/logs:
+    get:
+      operationId: getWhatsAppLogs
+      tags: [webhooks]
+      summary: Get Audited WhatsApp Conversations
+      description: Retrieves transaction history of AI replies.
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Logs history list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    orgId:
+                      type: integer
+                    senderPhone:
+                      type: string
+                    message:
+                      type: string
+                    reply:
+                      type: string
+                    intentDetected:
+                      type: string
+                    createdAt:
+                      type: string
+                  required: [id, orgId, senderPhone, message, reply, intentDetected]
+
+  /webhooks/whatsapp/settings:
+    get:
+      operationId: getWhatsAppSettings
+      tags: [webhooks]
+      summary: Get WhatsApp Branch Auto-Reply Settings
+      description: Retrieves branch toggle configurations.
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Settings details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  branchId:
+                    type: integer
+                  autoReply:
+                    type: boolean
+                required: [branchId, autoReply]
+    post:
+      operationId: updateWhatsAppSettings
+      tags: [webhooks]
+      summary: Toggle WhatsApp Auto-Reply
+      description: Saves active/inactive settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                branchId:
+                  type: integer
+                autoReply:
+                  type: boolean
+              required: [branchId, autoReply]
+      responses:
+        "200":
+          description: Settings successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  branchId:
+                    type: integer
+                  autoReply:
+                    type: boolean
+                required: [branchId, autoReply]
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +1291,603 @@ components:
       required:
         - status
 
+    Organization:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name]
+
+    Branch:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+      required: [id, orgId, name]
+
+    BusinessProfile:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        logoUrl:
+          type: string
+        tagline:
+          type: string
+        primaryColor:
+          type: string
+        shortDescription:
+          type: string
+        category:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        businessHours:
+          type: object
+      required: [orgId]
+
+    BusinessProfileInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        logoUrl:
+          type: string
+        tagline:
+          type: string
+        primaryColor:
+          type: string
+        shortDescription:
+          type: string
+        category:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        businessHours:
+          type: object
+      required: [orgId]
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        notes:
+          type: string
+      required: [id, orgId, name]
+
+    CustomerInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        notes:
+          type: string
+      required: [orgId, name]
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        source:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+        assignedTo:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, orgId, status]
+
+    LeadInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        source:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+        assignedTo:
+          type: string
+      required: [orgId]
+
+    Inquiry:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, orgId, name]
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        assignedTo:
+          type: string
+      required: [id, orgId, title, status]
+
+    TaskInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        assignedTo:
+          type: string
+      required: [orgId, title]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        sku:
+          type: string
+        stock:
+          type: integer
+        category:
+          type: string
+        imageUrl:
+          type: string
+      required: [id, orgId, name, price]
+
+    ProductInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        sku:
+          type: string
+        stock:
+          type: integer
+        category:
+          type: string
+        imageUrl:
+          type: string
+      required: [orgId, name, price]
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        duration:
+          type: integer
+      required: [id, orgId, name, price]
+
+    ServiceInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        duration:
+          type: integer
+      required: [orgId, name, price]
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        status:
+          type: string
+        totalAmount:
+          type: integer
+        paymentStatus:
+          type: string
+        paymentMethod:
+          type: string
+        type:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, orgId, status, totalAmount]
+
+    OrderInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        status:
+          type: string
+        totalAmount:
+          type: integer
+        paymentStatus:
+          type: string
+        paymentMethod:
+          type: string
+        type:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: integer
+              serviceId:
+                type: integer
+              quantity:
+                type: integer
+              price:
+                type: integer
+            required: [quantity, price]
+      required: [orgId, totalAmount, items]
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        serviceId:
+          type: integer
+        staffId:
+          type: integer
+        dateTime:
+          type: string
+          format: date-time
+        status:
+          type: string
+        notes:
+          type: string
+      required: [id, orgId, customerId, dateTime, status]
+
+    AppointmentInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        serviceId:
+          type: integer
+        staffId:
+          type: integer
+        dateTime:
+          type: string
+          format: date-time
+        notes:
+          type: string
+      required: [orgId, customerId, dateTime]
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        assignedTo:
+          type: string
+      required: [id, orgId, customerId, title, status]
+
+    TicketInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        customerId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+        assignedTo:
+          type: string
+      required: [orgId, customerId, title]
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        orderId:
+          type: integer
+        customerId:
+          type: integer
+        invoiceNumber:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+        subtotal:
+          type: integer
+        tax:
+          type: integer
+        discount:
+          type: integer
+        total:
+          type: integer
+      required: [id, orgId, customerId, invoiceNumber, status, subtotal, total]
+
+    InvoiceInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        branchId:
+          type: integer
+        orderId:
+          type: integer
+        customerId:
+          type: integer
+        invoiceNumber:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        subtotal:
+          type: integer
+        tax:
+          type: integer
+        discount:
+          type: integer
+        total:
+          type: integer
+      required: [orgId, customerId, invoiceNumber, subtotal, total]
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        invoiceId:
+          type: integer
+        orderId:
+          type: integer
+        amount:
+          type: integer
+        paymentMethod:
+          type: string
+        transactionRef:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, orgId, amount, paymentMethod, status]
+
+    PaymentInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        invoiceId:
+          type: integer
+        orderId:
+          type: integer
+        amount:
+          type: integer
+        paymentMethod:
+          type: string
+        transactionRef:
+          type: string
+        status:
+          type: string
+      required: [orgId, amount, paymentMethod]
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: integer
+        orgId:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+      required: [id, orgId, name, type, status]
+
+    CampaignInput:
+      type: object
+      properties:
+        orgId:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+        content:
+          type: string
+      required: [orgId, name, type]
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        revenueToday:
+          type: integer
+        revenueMonthly:
+          type: integer
+        ordersTotal:
+          type: integer
+        customersCount:
+          type: integer
+        salesHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              val:
+                type: integer
+        leadsHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+      required: [revenueToday, revenueMonthly, ordersTotal, customersCount]
