@@ -29,7 +29,7 @@ export async function generateMarketingChatReply(
   businessType: string,
   serviceType: string
 ): Promise<MarketingChatResponse> {
-  const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
 
   try {
     const response = await fetch(`${backendUrl}/api/copilot/marketing`, {

@@ -31,7 +31,7 @@ const SupportPage = lazy(() => import("./pages/SupportPage"));
 const BillingOCRPage = lazy(() => import("./pages/BillingOCRPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
-setBaseUrl(import.meta.env.VITE_API_URL || "http://localhost:5000");
+setBaseUrl(import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com");
 
 const queryClient = new QueryClient();
 

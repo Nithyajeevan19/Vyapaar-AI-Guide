@@ -32,7 +32,7 @@ export async function generateBranding(
   phone: string,
   language: string
 ): Promise<BusinessBranding> {
-  const backendUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
   
   try {
     const response = await fetch(`${backendUrl}/api/copilot/branding`, {
