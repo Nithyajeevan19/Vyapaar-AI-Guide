@@ -5,9 +5,11 @@ import {
   useListProducts, 
   useCreateProduct, 
   useCreateOrder, 
-  useCreateInvoice 
+  useCreateInvoice,
+  useCreateCustomer
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "../hooks/useAuth";
 import { 
   Camera, 
   FileImage, 
@@ -39,7 +41,7 @@ interface ExtractedItem {
 }
 
 export default function BillingOCRPage() {
-  const orgId = 1; // Tenant scoping
+  const { currentOrgId: orgId } = useAuth();
   const { toast } = useToast();
 
   const [step, setStep] = useState<"capture" | "processing" | "review" | "done" | "mapping">("capture");
@@ -49,7 +51,7 @@ export default function BillingOCRPage() {
   // Form State for Review
   const [vendorName, setVendorName] = useState("");
   const [invoiceDate, setInvoiceDate] = useState("");
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | "">("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | string | "">("");
   const [lineItems, setLineItems] = useState<ExtractedItem[]>([]);
   const [taxAmount, setTaxAmount] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
@@ -77,6 +79,7 @@ export default function BillingOCRPage() {
   const createProductMutation = useCreateProduct();
   const createOrderMutation = useCreateOrder();
   const createInvoiceMutation = useCreateInvoice();
+  const createCustomerMutation = useCreateCustomer();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -153,6 +156,8 @@ export default function BillingOCRPage() {
 
     if (customers.length > 0) {
       setSelectedCustomerId(customers[0].id);
+    } else {
+      setSelectedCustomerId("walk-in");
     }
     setStep("review");
     toast({ title: "Import Successful", description: `Successfully parsed and mapped ${parsedItems.length} lines.` });
@@ -243,6 +248,8 @@ export default function BillingOCRPage() {
 
       if (customers.length > 0) {
         setSelectedCustomerId(customers[0].id);
+      } else {
+        setSelectedCustomerId("walk-in");
       }
 
       setStep("review");
@@ -294,6 +301,30 @@ export default function BillingOCRPage() {
     try {
       toast({ title: "Saving Records", description: "Mapping products and creating transactions..." });
 
+      let customerIdToUse: number;
+      if (typeof selectedCustomerId === "number") {
+        customerIdToUse = selectedCustomerId;
+      } else {
+        // Resolve default/special customer option
+        const defaultName = selectedCustomerId === "walk-in" ? "Walk-in Customer" :
+                            selectedCustomerId === "online" ? "Online Order Customer" : "Regular Client";
+        
+        const existing = customers.find((c: any) => c.name.toLowerCase() === defaultName.toLowerCase());
+        if (existing) {
+          customerIdToUse = existing.id;
+        } else {
+          // Create the customer on-the-fly
+          const newCust = await createCustomerMutation.mutateAsync({
+            data: {
+              orgId,
+              name: defaultName,
+              notes: "Automatically generated default customer"
+            }
+          });
+          customerIdToUse = newCust.id;
+        }
+      }
+
       const finalItems = [];
 
       // 1. Resolve product mappings (match or create new catalog products)
@@ -331,7 +362,7 @@ export default function BillingOCRPage() {
       const order = await createOrderMutation.mutateAsync({
         data: {
           orgId,
-          customerId: Number(selectedCustomerId),
+          customerId: customerIdToUse,
           status: "pending",
           totalAmount: totalPaise,
           items: finalItems
@@ -344,7 +375,7 @@ export default function BillingOCRPage() {
         data: {
           orgId,
           orderId: order.id,
-          customerId: Number(selectedCustomerId),
+          customerId: customerIdToUse,
           invoiceNumber: invoiceNum,
           subtotal: subtotalPaise,
           tax: Math.round(taxAmount * 100),
@@ -644,10 +675,22 @@ export default function BillingOCRPage() {
                 <Building size={16} className="text-muted-foreground" />
                 <select
                   value={selectedCustomerId}
-                  onChange={(e) => setSelectedCustomerId(e.target.value ? Number(e.target.value) : "")}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) {
+                      setSelectedCustomerId("");
+                    } else if (!isNaN(Number(val))) {
+                      setSelectedCustomerId(Number(val));
+                    } else {
+                      setSelectedCustomerId(val);
+                    }
+                  }}
                   className="bg-transparent border-none text-sm text-foreground focus:outline-none w-full font-sans"
                 >
                   <option value="">-- Choose Customer --</option>
+                  <option value="walk-in">Walk-in Customer (Default)</option>
+                  <option value="online">Online Order Customer (Default)</option>
+                  <option value="regular">Regular Client (Default)</option>
                   {customers.map((c: any) => (
                     <option key={c.id} value={c.id}>{c.name} ({c.email || c.phone || "No details"})</option>
                   ))}
