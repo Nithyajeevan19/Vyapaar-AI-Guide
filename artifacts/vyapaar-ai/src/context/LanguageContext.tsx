@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 export type Language = "en" | "te" | "hi" | "ta" | "kn" | "mr";
 
 const LS_KEY = "vyapaar_lang";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
 
 export const TRANSLATIONS = {
   en: {
@@ -193,7 +194,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     
     // First try database preference backend, then fallback to Firebase Firestore doc
-    fetch("http://localhost:5000/api/auth/language-preference", {
+    fetch(`${API_BASE_URL}/api/auth/language-preference`, {
       headers: { "x-user-id": user.uid }
     })
       .then(res => res.json())
@@ -235,7 +236,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (user) {
       try {
         // Sync with Postgres Backend
-        await fetch("http://localhost:5000/api/auth/language-preference", {
+        await fetch(`${API_BASE_URL}/api/auth/language-preference`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

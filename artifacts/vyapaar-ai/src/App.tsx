@@ -10,7 +10,8 @@ import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SkeletonCard } from "./components/SkeletonCard";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setBaseUrl, setUserIdGetter } from "@workspace/api-client-react";
+import { auth } from "./firebase/config";
 
 // Lazy-loaded page components
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -32,6 +33,18 @@ const BillingOCRPage = lazy(() => import("./pages/BillingOCRPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
 setBaseUrl(import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com");
+
+setUserIdGetter(() => {
+  const mock = localStorage.getItem("vyapaar_mock_user");
+  if (mock) {
+    try {
+      return JSON.parse(mock).uid;
+    } catch {
+      return "mock-user-1";
+    }
+  }
+  return auth.currentUser?.uid || null;
+});
 
 const queryClient = new QueryClient();
 

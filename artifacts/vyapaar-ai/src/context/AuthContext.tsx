@@ -21,9 +21,26 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Synchronously seed from currentUser so the spinner almost never shows
-  const [user, setUser] = useState<User | null>(auth.currentUser);
-  const [loading, setLoading] = useState(!auth.currentUser);
+  // Synchronously seed from currentUser or localStorage mock so the spinner almost never shows
+  const [user, setUser] = useState<User | null>(() => {
+    const mock = localStorage.getItem("vyapaar_mock_user");
+    if (mock) {
+      try {
+        return JSON.parse(mock) as User;
+      } catch {
+        return {
+          uid: "mock-user-1",
+          email: "developer@vyapaar.ai",
+          displayName: "Mock Developer",
+        } as unknown as User;
+      }
+    }
+    return auth.currentUser;
+  });
+  const [loading, setLoading] = useState(() => {
+    if (localStorage.getItem("vyapaar_mock_user")) return false;
+    return !auth.currentUser;
+  });
 
   const [currentOrgId, setCurrentOrgIdState] = useState<number>(() => {
     const cached = localStorage.getItem("vyapaar_current_org_id");
@@ -46,6 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (localStorage.getItem("vyapaar_mock_user")) {
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);

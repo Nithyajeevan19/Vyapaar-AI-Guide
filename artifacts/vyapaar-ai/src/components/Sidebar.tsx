@@ -44,7 +44,12 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      if (localStorage.getItem("vyapaar_mock_user")) {
+        localStorage.removeItem("vyapaar_mock_user");
+        window.location.reload();
+      } else {
+        await signOut(auth);
+      }
     } catch (error) {
       console.error("Error signing out:", error);
     }

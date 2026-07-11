@@ -4,6 +4,7 @@
  */
 
 const TRANSLATION_CACHE_KEY = "vyapaar_ai_translations";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
 
 interface CacheStore {
   [sourceTextAndTargetLang: string]: string;
@@ -37,7 +38,7 @@ export async function translateText(text: string, targetLang: string): Promise<s
 
   try {
     // Send to our backend AI proxy server (e.g., reusing branding/marketing copilot generators)
-    const response = await fetch("http://localhost:5000/api/copilot/marketing", {
+    const response = await fetch(`${API_BASE_URL}/api/copilot/marketing`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

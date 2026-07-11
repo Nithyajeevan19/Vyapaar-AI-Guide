@@ -7,6 +7,7 @@ export type ErrorType<T = unknown> = ApiError<T>;
 export type BodyType<T> = T;
 
 export type AuthTokenGetter = () => Promise<string | null> | string | null;
+export type UserIdGetter = () => Promise<string | null> | string | null;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
@@ -17,6 +18,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _userIdGetter: UserIdGetter | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -43,6 +45,16 @@ export function setBaseUrl(url: string | null): void {
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
 }
+
+/**
+ * Register a getter that supplies a user ID context. Before every fetch
+ * the getter is invoked; when it returns a non-null string, an
+ * `x-user-id` header is attached to the request.
+ */
+export function setUserIdGetter(getter: UserIdGetter | null): void {
+  _userIdGetter = getter;
+}
+
 
 function isRequest(input: RequestInfo | URL): input is Request {
   return typeof Request !== "undefined" && input instanceof Request;
@@ -355,6 +367,15 @@ export async function customFetch<T = unknown>(
     const token = await _authTokenGetter();
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
+    }
+  }
+
+  // Attach user ID when a getter is configured and no
+  // x-user-id header has been explicitly provided.
+  if (_userIdGetter && !headers.has("x-user-id")) {
+    const userId = await _userIdGetter();
+    if (userId) {
+      headers.set("x-user-id", userId);
     }
   }
 

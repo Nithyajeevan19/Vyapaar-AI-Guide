@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Bot, Mail, Lock } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
+
 async function resolveRoute(uid: string): Promise<string> {
   try {
     const getDocPromise = getDoc(doc(db, "users", uid));
@@ -55,6 +57,38 @@ export default function LoginPage() {
       setLocation(await resolveRoute(result.user.uid));
     } catch (error: any) {
       toast({ title: "Authentication Failed", description: error.message, variant: "destructive" });
+      setIsLoading(false);
+    }
+  };
+
+  const handleMockBypass = async () => {
+    setIsLoading(true);
+    try {
+      const mockUser = {
+        uid: "mock-user-1",
+        email: "developer@vyapaar.ai",
+        displayName: "Mock Developer",
+      };
+      localStorage.setItem("vyapaar_mock_user", JSON.stringify(mockUser));
+      
+      try {
+        await fetch(`${API_BASE_URL}/api/auth/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: mockUser.uid,
+            email: mockUser.email,
+            displayName: mockUser.displayName,
+          }),
+        });
+      } catch (syncErr) {
+        console.warn("Backend sync failed during mock bypass:", syncErr);
+      }
+
+      setLocation("/dashboard");
+      window.location.reload();
+    } catch (error: any) {
+      toast({ title: "Mock Bypass Failed", description: error.message, variant: "destructive" });
       setIsLoading(false);
     }
   };
@@ -178,6 +212,17 @@ export default function LoginPage() {
           >
             <FcGoogle size={22} />
             <span>Continue with Google</span>
+          </button>
+
+          <button
+            onClick={handleMockBypass}
+            disabled={isLoading}
+            className="w-full mt-3 py-3 px-4 bg-muted hover:bg-accent hover:text-accent-foreground text-foreground border border-border font-medium rounded-xl transition-colors flex justify-center items-center gap-2 shadow-sm"
+            type="button"
+            data-testid="button-mock-bypass"
+          >
+            <Bot size={20} className="text-primary" />
+            <span>Bypass Login (Developer Mode)</span>
           </button>
 
           <div className="mt-8 pt-6 border-t border-border/50 text-center text-sm text-muted-foreground">

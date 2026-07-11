@@ -20,6 +20,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
+
 export default function InsightsPage() {
   const orgId = 1;
 
@@ -31,7 +33,7 @@ export default function InsightsPage() {
   const { data: insights = [] } = useQuery<any[]>({
     queryKey: ["analyticsInsights"],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:5000/api/analytics/insights?orgId=${orgId}`);
+      const res = await fetch(`${API_BASE_URL}/api/analytics/insights?orgId=${orgId}`);
       return res.json();
     }
   });
