@@ -78,7 +78,8 @@ const rawMockStore: MockStore = {
   products: [
     { id: 1, orgId: 1, name: "Sonamasuri Rice 25kg", description: "Premium aged white rice", price: 135000, sku: "RICE-SONA-25", stock: 15, category: "Grains" },
     { id: 2, orgId: 1, name: "Sunflower Oil 1L", description: "Refined healthy oil", price: 16000, sku: "OIL-SUN-1L", stock: 50, category: "Oils" },
-    { id: 3, orgId: 1, name: "Toor Dal 1kg", description: "Unpolished organic dal", price: 18000, sku: "DAL-TOOR-1K", stock: 30, category: "Dals" }
+    { id: 3, orgId: 1, name: "Toor Dal 1kg", description: "Unpolished organic dal", price: 18000, sku: "DAL-TOOR-1K", stock: 30, category: "Dals" },
+    { id: 4, orgId: 1, name: "Atta Wheat Flour 10kg", description: "Premium whole wheat flour", price: 45000, sku: "FLOUR-ATTA-10", stock: 8, category: "Flour" }
   ],
   services: [
     { id: 1, orgId: 1, name: "Express Home Delivery", description: "Delivery within 2 hours", price: 5000, duration: 120 }

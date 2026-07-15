@@ -5,6 +5,7 @@ import {
   useUpdateWhatsAppSettings 
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "../hooks/useAuth";
 import { 
   MessageCircle, 
   Settings, 
@@ -22,7 +23,8 @@ import { SkeletonCard } from "../components/SkeletonCard";
 
 export default function WhatsAppPage() {
   const branchId = 1; // Default active branch
-  const orgId = 1;
+  const { currentOrgId } = useAuth();
+  const orgId = currentOrgId;
   const { toast } = useToast();
   const [dummyMessage] = useState("Hello 👋,\n\nYour order has been confirmed and is being processed.\n\nThank you for choosing us! Reply to this message if you need any help.");
   

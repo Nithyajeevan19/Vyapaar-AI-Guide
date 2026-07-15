@@ -72,7 +72,7 @@ router.post("/upload", requireOrgMembership, upload.single("file"), async (req, 
     }
 
     const chunks = chunkText(text);
-    const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+    const apiKey = process.env.GEMINI_API_KEY || "";
 
     if (process.env.DATABASE_URL) {
       const [doc] = await db.insert(knowledgeDocuments).values({
@@ -144,7 +144,7 @@ const querySchema = z.object({
 router.post("/query", requireOrgMembership, validate(querySchema), async (req, res) => {
   try {
     const { question, orgId } = req.body;
-    const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+    const apiKey = process.env.GEMINI_API_KEY || "";
 
     // 1. Embed query
     let queryEmbedding: number[];

@@ -123,7 +123,7 @@ router.get("/dashboard", requireOrgMembership, async (req, res) => {
 // GET /analytics/insights - Call AI endpoint with aggregated metrics and return recommendations
 router.get("/insights", requireOrgMembership, async (req, res) => {
   const orgId = parseInt(req.query.orgId as string || "1");
-  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   let category = "Retail";
   let desc = "General Store";

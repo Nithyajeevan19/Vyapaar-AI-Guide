@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { mockStore } from "../lib/mockStore";
 import { validate } from "../middlewares/validate";
+import { requireOrgMembership } from "../middlewares/requireOrgMembership";
 import { GetOpenAICompletionBody } from "@workspace/api-zod";
 import multer from "multer";
 import { z } from "zod";
@@ -16,7 +17,7 @@ router.post("/onboarding", async (req, res) => {
     return res.status(400).json({ error: "Missing required onboarding fields" });
   }
 
-  const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   // Setup industry type detection based on businessType keywords
   const typeLower = businessType.toLowerCase();
@@ -121,14 +122,14 @@ Return JSON:
 });
 
 // POST /copilot/chat - Chat with AI Copilot
-router.post("/chat", async (req, res) => {
+router.post("/chat", requireOrgMembership, async (req, res) => {
   const { userId, message } = req.body;
 
   if (!userId || !message) {
     return res.status(400).json({ error: "Missing required chat fields (userId, message)" });
   }
 
-  const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   // Retrieve or initialize conversation history
   if (!mockStore.aiConversations[userId]) {
@@ -205,13 +206,13 @@ router.post("/chat", async (req, res) => {
 });
 
 // POST /copilot/branding - Secure branding copy generator
-router.post("/branding", async (req, res) => {
+router.post("/branding", requireOrgMembership, async (req, res) => {
   const { businessName, businessType, phone, language } = req.body;
   if (!businessName || !businessType) {
     return res.status(400).json({ error: "Missing businessName or businessType" });
   }
 
-  const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   const isWater = businessType.toLowerCase().includes("water");
   const fallback = {
     businessName,
@@ -276,13 +277,13 @@ Rules:
 });
 
 // POST /copilot/marketing - Secure marketing copy generator
-router.post("/marketing", async (req, res) => {
+router.post("/marketing", requireOrgMembership, async (req, res) => {
   const { messages, businessName, businessType, serviceType } = req.body;
   if (!businessName || !businessType) {
     return res.status(400).json({ error: "Missing businessName or businessType" });
   }
 
-  const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   const fallback = {
     intent: "clarify",
     chatReply: `Hello! I am your social media marketing expert for ${businessName}. Tell me what you'd like to create: an Instagram caption, a short Reel video script, or a WhatsApp promo!`,
@@ -361,7 +362,7 @@ Rules:
 
 
 // POST /copilot/completion - Secure OpenAI Chat Completion Proxy
-router.post("/completion", validate(GetOpenAICompletionBody), async (req, res) => {
+router.post("/completion", requireOrgMembership, validate(GetOpenAICompletionBody), async (req, res) => {
   const { messages } = req.body;
 
   const apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
@@ -417,9 +418,9 @@ const extractedInvoiceSchema = z.object({
 });
 
 // POST /copilot/ocr-invoice
-router.post("/ocr-invoice", upload.single("image"), async (req, res) => {
+router.post("/ocr-invoice", requireOrgMembership, upload.single("image"), async (req, res) => {
   try {
-    const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+    const apiKey = process.env.GEMINI_API_KEY || "";
     let base64Data = "";
     let mimeType = "image/jpeg";
 
@@ -449,7 +450,7 @@ router.post("/ocr-invoice", upload.single("image"), async (req, res) => {
 
     // In development fallback if Gemini API Key is missing:
     if (!apiKey) {
-      console.warn("VITE_GEMINI_API_KEY is not configured on the server. Returning mock OCR fallback data.");
+      console.warn("GEMINI_API_KEY is not configured on the server. Returning mock OCR fallback data.");
       const mockOcrData = {
         vendorName: "Simulated Vendor Ltd",
         date: new Date().toISOString().split("T")[0],

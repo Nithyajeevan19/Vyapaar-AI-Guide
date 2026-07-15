@@ -8,6 +8,13 @@
       "when": 1783591938883,
       "tag": "0000_bumpy_lord_tyger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783779065859,
+      "tag": "0001_eager_vindicator",
+      "breakpoints": true
     }
   ]
 }

@@ -37,21 +37,34 @@ export async function translateText(text: string, targetLang: string): Promise<s
   }
 
   try {
+    const mockUser = localStorage.getItem("vyapaar_mock_user");
+    let userId = "mock-user-1";
+    if (mockUser) {
+      try {
+        userId = JSON.parse(mockUser).uid;
+      } catch {}
+    }
+    const orgId = localStorage.getItem("vyapaar_current_org_id") || "1";
+
     // Send to our backend AI proxy server (e.g., reusing branding/marketing copilot generators)
     const response = await fetch(`${API_BASE_URL}/api/copilot/marketing`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-user-id": userId,
+        "x-org-id": orgId
+      },
       body: JSON.stringify({
-        orgName: "System Translator",
-        industryType: "service",
-        campaignType: "translation",
-        topic: `Translate the following text into ${targetLang} language. Output ONLY the raw translated text, no comments: "${text}"`,
+        businessName: "System Translator",
+        businessType: "service",
+        serviceType: "translation",
+        messages: [{ role: "user", content: `Translate the following text into ${targetLang} language. Output ONLY the raw translated text, no comments: "${text}"` }],
       })
     });
 
     if (response.ok) {
       const data = await response.json();
-      const translated = data.marketingCopy || data.text || text;
+      const translated = data.contentData?.message || data.chatReply || data.marketingCopy || data.text || text;
       
       // Save translation results to cache
       cache[cacheKey] = translated;

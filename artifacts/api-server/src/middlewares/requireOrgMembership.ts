@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { db, organizationMembers } from "@workspace/db";
+import { db, organizationMembers, leads, branches } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { mockStore } from "../lib/mockStore";
 
@@ -31,8 +31,52 @@ export async function requireOrgMembership(req: Request, res: Response, next: Ne
   // Ensure userId is attached to request context for subsequent routing controllers
   (req as any).userId = userId;
 
-  // Extract orgId from query, body, or route parameters
-  const orgIdRaw = req.query.orgId || req.body.orgId || req.params.orgId;
+  // Extract orgId from query, body, route parameters, or headers
+  let orgIdRaw = req.query.orgId || req.body.orgId || req.params.orgId || req.headers["x-org-id"];
+
+  if (!orgIdRaw) {
+    const leadIdRaw = req.query.leadId || req.body.leadId || req.params.leadId;
+    if (leadIdRaw) {
+      const leadId = parseInt(leadIdRaw as string, 10);
+      if (!isNaN(leadId)) {
+        if (process.env.DATABASE_URL) {
+          try {
+            const leadRecord = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1);
+            if (leadRecord.length > 0) {
+              orgIdRaw = String(leadRecord[0].orgId);
+            }
+          } catch (e) {}
+        } else {
+          const leadRecord = mockStore.leads?.find(l => l.id === leadId);
+          if (leadRecord) {
+            orgIdRaw = String(leadRecord.orgId);
+          }
+        }
+      }
+    }
+  }
+
+  if (!orgIdRaw) {
+    const branchIdRaw = req.query.branchId || req.body.branchId || req.params.branchId;
+    if (branchIdRaw) {
+      const branchId = parseInt(branchIdRaw as string, 10);
+      if (!isNaN(branchId)) {
+        if (process.env.DATABASE_URL) {
+          try {
+            const branchRecord = await db.select().from(branches).where(eq(branches.id, branchId)).limit(1);
+            if (branchRecord.length > 0) {
+              orgIdRaw = String(branchRecord[0].orgId);
+            }
+          } catch (e) {}
+        } else {
+          const branchRecord = mockStore.branches?.find(b => b.id === branchId);
+          if (branchRecord) {
+            orgIdRaw = String(branchRecord.orgId);
+          }
+        }
+      }
+    }
+  }
 
   if (!orgIdRaw) {
     return res.status(400).json({

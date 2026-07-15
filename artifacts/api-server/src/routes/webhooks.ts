@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, customers, leads, products, businessProfiles } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { mockStore } from "../lib/mockStore";
+import { requireOrgMembership } from "../middlewares/requireOrgMembership";
 
 const router = Router();
 
@@ -147,7 +148,7 @@ ${catalogText}
 
 Customer Message: "${messageText}"`;
 
-    const geminiApiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+    const geminiApiKey = process.env.GEMINI_API_KEY || "";
     let replyText = `Hello! Thanks for writing to ${businessName}. We received your query: "${messageText}". We will look into it shortly.`;
     
     if (geminiApiKey) {
@@ -265,13 +266,13 @@ Customer Message: "${messageText}"`;
 });
 
 // GET /api/webhooks/whatsapp/logs - Fetch audited conversation transcripts for settings panel
-router.get("/whatsapp/logs", async (req, res) => {
+router.get("/whatsapp/logs", requireOrgMembership, async (req, res) => {
   const orgId = parseInt(req.query.orgId as string || "1");
   return res.json(mockStore.whatsappLogs.filter((l: any) => l.orgId === orgId));
 });
 
 // GET /api/webhooks/whatsapp/settings - Fetch auto-reply toggles
-router.get("/whatsapp/settings", async (req, res) => {
+router.get("/whatsapp/settings", requireOrgMembership, async (req, res) => {
   const branchId = parseInt(req.query.branchId as string || "1");
   let setting = mockStore.whatsappSettings.find((s: any) => s.branchId === branchId);
   if (!setting) {
@@ -282,7 +283,7 @@ router.get("/whatsapp/settings", async (req, res) => {
 });
 
 // POST /api/webhooks/whatsapp/settings - Toggle auto-reply states
-router.post("/whatsapp/settings", async (req, res) => {
+router.post("/whatsapp/settings", requireOrgMembership, async (req, res) => {
   const { branchId, autoReply } = req.body;
   let setting = mockStore.whatsappSettings.find((s: any) => s.branchId === branchId);
   if (setting) {

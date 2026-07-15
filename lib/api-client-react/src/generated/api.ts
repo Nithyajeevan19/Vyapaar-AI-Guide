@@ -36,6 +36,8 @@ import type {
   CreateOrganizationBody,
   Customer,
   CustomerInput,
+  EndVoiceSession200,
+  EndVoiceSessionBody,
   GetAnalyticsDashboardParams,
   GetBusinessProfileParams,
   GetInventoryForecast200Item,
@@ -44,6 +46,9 @@ import type {
   GetOpenAICompletionBody,
   GetRevenueForecast200,
   GetRevenueForecastParams,
+  GetVoiceHistoryParams,
+  GetVoiceResponseBody,
+  GetVoiceSettingsParams,
   GetWhatsAppLogs200Item,
   GetWhatsAppLogsParams,
   GetWhatsAppSettings200,
@@ -84,6 +89,7 @@ import type {
   ReceiveWhatsAppMessageBody,
   Service,
   ServiceInput,
+  StartVoiceSessionBody,
   SubmitInquiryBody,
   SwitchOrganization200,
   SyncUser200,
@@ -92,13 +98,20 @@ import type {
   TaskInput,
   Ticket,
   TicketInput,
+  TranscribeVoiceAudioBody,
   UpdateLeadStatusBody,
   UpdateWhatsAppSettings200,
   UpdateWhatsAppSettingsBody,
   UploadKnowledgeFile200,
   UploadKnowledgeFileBody,
   UploadKnowledgeFileParams,
-  VerifyWhatsAppWebhookParams
+  VerifyWhatsAppWebhookParams,
+  VoiceMessage,
+  VoiceResponse,
+  VoiceSession,
+  VoiceSettings,
+  VoiceSettingsUpdate,
+  VoiceTranscript
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -3926,5 +3939,533 @@ export const useUpdateWhatsAppSettings = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateWhatsAppSettingsMutationOptions(options));
+    }
+
+export const getStartVoiceSessionUrl = () => {
+
+
+
+
+  return `/api/voice/session`
+}
+
+/**
+ * Initiates a new voice session or returns an active one for the organization.
+ * @summary Start Voice Session
+ */
+export const startVoiceSession = async (startVoiceSessionBody: StartVoiceSessionBody, options?: RequestInit): Promise<VoiceSession> => {
+
+  return customFetch<VoiceSession>(getStartVoiceSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(startVoiceSessionBody)
+  }
+);}
+
+
+
+
+export const getStartVoiceSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startVoiceSession>>, TError,{data: BodyType<StartVoiceSessionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startVoiceSession>>, TError,{data: BodyType<StartVoiceSessionBody>}, TContext> => {
+
+const mutationKey = ['startVoiceSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startVoiceSession>>, {data: BodyType<StartVoiceSessionBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  startVoiceSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartVoiceSessionMutationResult = NonNullable<Awaited<ReturnType<typeof startVoiceSession>>>
+    export type StartVoiceSessionMutationBody = BodyType<StartVoiceSessionBody>
+    export type StartVoiceSessionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Start Voice Session
+ */
+export const useStartVoiceSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startVoiceSession>>, TError,{data: BodyType<StartVoiceSessionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startVoiceSession>>,
+        TError,
+        {data: BodyType<StartVoiceSessionBody>},
+        TContext
+      > => {
+      return useMutation(getStartVoiceSessionMutationOptions(options));
+    }
+
+export const getTranscribeVoiceAudioUrl = () => {
+
+
+
+
+  return `/api/voice/transcribe`
+}
+
+/**
+ * Uploads and transcribes voice recording file.
+ * @summary Transcribe Audio
+ */
+export const transcribeVoiceAudio = async (transcribeVoiceAudioBody: TranscribeVoiceAudioBody, options?: RequestInit): Promise<VoiceTranscript> => {
+    const formData = new FormData();
+formData.append(`file`, transcribeVoiceAudioBody.file);
+formData.append(`orgId`, transcribeVoiceAudioBody.orgId.toString())
+
+  return customFetch<VoiceTranscript>(getTranscribeVoiceAudioUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+export const getTranscribeVoiceAudioMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transcribeVoiceAudio>>, TError,{data: BodyType<TranscribeVoiceAudioBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transcribeVoiceAudio>>, TError,{data: BodyType<TranscribeVoiceAudioBody>}, TContext> => {
+
+const mutationKey = ['transcribeVoiceAudio'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transcribeVoiceAudio>>, {data: BodyType<TranscribeVoiceAudioBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  transcribeVoiceAudio(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TranscribeVoiceAudioMutationResult = NonNullable<Awaited<ReturnType<typeof transcribeVoiceAudio>>>
+    export type TranscribeVoiceAudioMutationBody = BodyType<TranscribeVoiceAudioBody>
+    export type TranscribeVoiceAudioMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Transcribe Audio
+ */
+export const useTranscribeVoiceAudio = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transcribeVoiceAudio>>, TError,{data: BodyType<TranscribeVoiceAudioBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof transcribeVoiceAudio>>,
+        TError,
+        {data: BodyType<TranscribeVoiceAudioBody>},
+        TContext
+      > => {
+      return useMutation(getTranscribeVoiceAudioMutationOptions(options));
+    }
+
+export const getGetVoiceResponseUrl = () => {
+
+
+
+
+  return `/api/voice/respond`
+}
+
+/**
+ * Submits transcribed user prompt text and returns text + voice audio response.
+ * @summary Get Voice AI Response
+ */
+export const getVoiceResponse = async (getVoiceResponseBody: GetVoiceResponseBody, options?: RequestInit): Promise<VoiceResponse> => {
+
+  return customFetch<VoiceResponse>(getGetVoiceResponseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(getVoiceResponseBody)
+  }
+);}
+
+
+
+
+export const getGetVoiceResponseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getVoiceResponse>>, TError,{data: BodyType<GetVoiceResponseBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof getVoiceResponse>>, TError,{data: BodyType<GetVoiceResponseBody>}, TContext> => {
+
+const mutationKey = ['getVoiceResponse'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getVoiceResponse>>, {data: BodyType<GetVoiceResponseBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  getVoiceResponse(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GetVoiceResponseMutationResult = NonNullable<Awaited<ReturnType<typeof getVoiceResponse>>>
+    export type GetVoiceResponseMutationBody = BodyType<GetVoiceResponseBody>
+    export type GetVoiceResponseMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Get Voice AI Response
+ */
+export const useGetVoiceResponse = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getVoiceResponse>>, TError,{data: BodyType<GetVoiceResponseBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof getVoiceResponse>>,
+        TError,
+        {data: BodyType<GetVoiceResponseBody>},
+        TContext
+      > => {
+      return useMutation(getGetVoiceResponseMutationOptions(options));
+    }
+
+export const getGetVoiceHistoryUrl = (params: GetVoiceHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/voice/history?${stringifiedParams}` : `/api/voice/history`
+}
+
+/**
+ * Returns conversation message transcripts for a given session.
+ * @summary Get Session Voice History
+ */
+export const getVoiceHistory = async (params: GetVoiceHistoryParams, options?: RequestInit): Promise<VoiceMessage[]> => {
+
+  return customFetch<VoiceMessage[]>(getGetVoiceHistoryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVoiceHistoryQueryKey = (params?: GetVoiceHistoryParams,) => {
+    return [
+    `/api/voice/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetVoiceHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getVoiceHistory>>, TError = ErrorType<unknown>>(params: GetVoiceHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVoiceHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVoiceHistoryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVoiceHistory>>> = ({ signal }) => getVoiceHistory(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVoiceHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVoiceHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getVoiceHistory>>>
+export type GetVoiceHistoryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Session Voice History
+ */
+
+export function useGetVoiceHistory<TData = Awaited<ReturnType<typeof getVoiceHistory>>, TError = ErrorType<unknown>>(
+ params: GetVoiceHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVoiceHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVoiceHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getEndVoiceSessionUrl = () => {
+
+
+
+
+  return `/api/voice/end`
+}
+
+/**
+ * Gracefully terminates the voice session.
+ * @summary End Voice Session
+ */
+export const endVoiceSession = async (endVoiceSessionBody: EndVoiceSessionBody, options?: RequestInit): Promise<EndVoiceSession200> => {
+
+  return customFetch<EndVoiceSession200>(getEndVoiceSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(endVoiceSessionBody)
+  }
+);}
+
+
+
+
+export const getEndVoiceSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endVoiceSession>>, TError,{data: BodyType<EndVoiceSessionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof endVoiceSession>>, TError,{data: BodyType<EndVoiceSessionBody>}, TContext> => {
+
+const mutationKey = ['endVoiceSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof endVoiceSession>>, {data: BodyType<EndVoiceSessionBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  endVoiceSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndVoiceSessionMutationResult = NonNullable<Awaited<ReturnType<typeof endVoiceSession>>>
+    export type EndVoiceSessionMutationBody = BodyType<EndVoiceSessionBody>
+    export type EndVoiceSessionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary End Voice Session
+ */
+export const useEndVoiceSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endVoiceSession>>, TError,{data: BodyType<EndVoiceSessionBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof endVoiceSession>>,
+        TError,
+        {data: BodyType<EndVoiceSessionBody>},
+        TContext
+      > => {
+      return useMutation(getEndVoiceSessionMutationOptions(options));
+    }
+
+export const getGetVoiceSettingsUrl = (params: GetVoiceSettingsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/voice/settings?${stringifiedParams}` : `/api/voice/settings`
+}
+
+/**
+ * Retrieves the voice configurations for the merchant user.
+ * @summary Get Voice Settings
+ */
+export const getVoiceSettings = async (params: GetVoiceSettingsParams, options?: RequestInit): Promise<VoiceSettings> => {
+
+  return customFetch<VoiceSettings>(getGetVoiceSettingsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVoiceSettingsQueryKey = (params?: GetVoiceSettingsParams,) => {
+    return [
+    `/api/voice/settings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetVoiceSettingsQueryOptions = <TData = Awaited<ReturnType<typeof getVoiceSettings>>, TError = ErrorType<unknown>>(params: GetVoiceSettingsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVoiceSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVoiceSettingsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVoiceSettings>>> = ({ signal }) => getVoiceSettings(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVoiceSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVoiceSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getVoiceSettings>>>
+export type GetVoiceSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Voice Settings
+ */
+
+export function useGetVoiceSettings<TData = Awaited<ReturnType<typeof getVoiceSettings>>, TError = ErrorType<unknown>>(
+ params: GetVoiceSettingsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVoiceSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVoiceSettingsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateVoiceSettingsUrl = () => {
+
+
+
+
+  return `/api/voice/settings`
+}
+
+/**
+ * Updates the voice configurations for the merchant user.
+ * @summary Update Voice Settings
+ */
+export const updateVoiceSettings = async (voiceSettingsUpdate: VoiceSettingsUpdate, options?: RequestInit): Promise<VoiceSettings> => {
+
+  return customFetch<VoiceSettings>(getUpdateVoiceSettingsUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(voiceSettingsUpdate)
+  }
+);}
+
+
+
+
+export const getUpdateVoiceSettingsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVoiceSettings>>, TError,{data: BodyType<VoiceSettingsUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateVoiceSettings>>, TError,{data: BodyType<VoiceSettingsUpdate>}, TContext> => {
+
+const mutationKey = ['updateVoiceSettings'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateVoiceSettings>>, {data: BodyType<VoiceSettingsUpdate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateVoiceSettings(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateVoiceSettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateVoiceSettings>>>
+    export type UpdateVoiceSettingsMutationBody = BodyType<VoiceSettingsUpdate>
+    export type UpdateVoiceSettingsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update Voice Settings
+ */
+export const useUpdateVoiceSettings = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVoiceSettings>>, TError,{data: BodyType<VoiceSettingsUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateVoiceSettings>>,
+        TError,
+        {data: BodyType<VoiceSettingsUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateVoiceSettingsMutationOptions(options));
     }
 

@@ -74,6 +74,14 @@
       "email": "pranitha@yahoo.com",
       "phone": "+919944332211",
       "notes": "Prefers home delivery"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "notes": "Test customer"
     }
   ],
   "leads": [
@@ -111,6 +119,126 @@
       "message": "Do you deliver to Gachibowli?",
       "status": "pending",
       "createdAt": "2026-07-09T09:42:56.034Z"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "message": "Do you sell fresh wheat flour?",
+      "status": "resolved"
+    },
+    {
+      "id": 102,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Manoj Singh",
+      "email": "manoj@gmail.com",
+      "phone": "+919922114433",
+      "message": "Do you deliver to Kukatpally?",
+      "status": "resolved"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "message": "Do you sell fresh wheat flour?",
+      "status": "pending"
+    },
+    {
+      "id": 102,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Manoj Singh",
+      "email": "manoj@gmail.com",
+      "phone": "+919922114433",
+      "message": "Do you deliver to Kukatpally?",
+      "status": "pending"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "message": "Do you sell fresh wheat flour?",
+      "status": "pending"
+    },
+    {
+      "id": 102,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Manoj Singh",
+      "email": "manoj@gmail.com",
+      "phone": "+919922114433",
+      "message": "Do you deliver to Kukatpally?",
+      "status": "pending"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "message": "Do you sell fresh wheat flour?",
+      "status": "pending"
+    },
+    {
+      "id": 102,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Manoj Singh",
+      "email": "manoj@gmail.com",
+      "phone": "+919922114433",
+      "message": "Do you deliver to Kukatpally?",
+      "status": "pending"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "message": "Do you sell fresh wheat flour?",
+      "status": "pending"
+    },
+    {
+      "id": 102,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Manoj Singh",
+      "email": "manoj@gmail.com",
+      "phone": "+919922114433",
+      "message": "Do you deliver to Kukatpally?",
+      "status": "pending"
+    },
+    {
+      "id": 101,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Suresh Kumar",
+      "email": "suresh@gmail.com",
+      "phone": "+919988776655",
+      "message": "Do you sell fresh wheat flour?",
+      "status": "pending"
+    },
+    {
+      "id": 102,
+      "orgId": 1,
+      "branchId": 1,
+      "name": "Manoj Singh",
+      "email": "manoj@gmail.com",
+      "phone": "+919922114433",
+      "message": "Do you deliver to Kukatpally?",
+      "status": "pending"
     }
   ],
   "staff": [
@@ -144,6 +272,17 @@
       "status": "todo",
       "dueDate": "2026-07-11T09:42:56.034Z",
       "assignedTo": "mock-user-1"
+    },
+    {
+      "id": 3,
+      "orgId": 1,
+      "branchId": null,
+      "title": "Submit GST Report for Srinivasa Stores",
+      "description": "Follow-up task created after updating lead status.",
+      "status": "todo",
+      "dueDate": null,
+      "assignedTo": "demo-owner",
+      "createdAt": "2026-07-14T14:18:31.430Z"
     }
   ],
   "products": [
@@ -176,6 +315,16 @@
       "sku": "DAL-TOOR-1K",
       "stock": 30,
       "category": "Dals"
+    },
+    {
+      "id": 4,
+      "orgId": 1,
+      "name": "Atta Wheat Flour 10kg",
+      "description": "Premium whole wheat flour",
+      "price": 45000,
+      "sku": "FLOUR-ATTA-10",
+      "stock": 8,
+      "category": "Flour"
     }
   ],
   "services": [
@@ -220,7 +369,52 @@
     }
   ],
   "appointments": [],
-  "tickets": [],
+  "tickets": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "branchId": null,
+      "customerId": 101,
+      "title": "Grain quality complaint",
+      "description": null,
+      "status": "open",
+      "priority": "high",
+      "assignedTo": null
+    },
+    {
+      "id": 2,
+      "orgId": 1,
+      "branchId": null,
+      "customerId": 101,
+      "title": "Grain quality complaint",
+      "description": null,
+      "status": "open",
+      "priority": "high",
+      "assignedTo": null
+    },
+    {
+      "id": 3,
+      "orgId": 1,
+      "branchId": null,
+      "customerId": 101,
+      "title": "Grain quality complaint",
+      "description": null,
+      "status": "open",
+      "priority": "high",
+      "assignedTo": null
+    },
+    {
+      "id": 4,
+      "orgId": 1,
+      "branchId": null,
+      "customerId": 101,
+      "title": "Flour Delivery Issue",
+      "description": "Customer reported an issue with their flour delivery.",
+      "status": "open",
+      "priority": "High",
+      "assignedTo": null
+    }
+  ],
   "invoices": [
     {
       "id": 1,
@@ -262,5 +456,132 @@
       "createdAt": "2026-07-09T09:42:56.034Z"
     }
   ],
-  "aiConversations": {}
+  "knowledgeDocuments": [],
+  "knowledgeChunks": [],
+  "aiConversations": {},
+  "whatsappLogs": [
+    {
+      "id": 1,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct test broadcast promotion",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:23:44.297Z"
+    },
+    {
+      "id": 2,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct reply: Yes, we sell premium whole wheat flour.",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:23:44.307Z"
+    },
+    {
+      "id": 3,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct test broadcast promotion",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:24:08.916Z"
+    },
+    {
+      "id": 4,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct reply: Yes, we sell premium whole wheat flour.",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:24:08.928Z"
+    },
+    {
+      "id": 5,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct test broadcast promotion",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:24:33.584Z"
+    },
+    {
+      "id": 6,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct reply: Yes, we sell premium whole wheat flour.",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:24:33.595Z"
+    },
+    {
+      "id": 7,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct test broadcast promotion",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:01.884Z"
+    },
+    {
+      "id": 8,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct reply: Yes, we sell premium whole wheat flour.",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:01.895Z"
+    },
+    {
+      "id": 9,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct test broadcast promotion",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:23.936Z"
+    },
+    {
+      "id": 10,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct reply: Yes, we sell premium whole wheat flour.",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:23.947Z"
+    },
+    {
+      "id": 11,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct test broadcast promotion",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:38.055Z"
+    },
+    {
+      "id": 12,
+      "orgId": 1,
+      "senderPhone": "+919988776655",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "Direct reply: Yes, we sell premium whole wheat flour.",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:38.066Z"
+    },
+    {
+      "id": 13,
+      "orgId": 1,
+      "senderPhone": "+919922114433",
+      "message": "[Outbound Broadcast/Reply]",
+      "reply": "yes we deliver to Kukatpally",
+      "intentDetected": "none",
+      "createdAt": "2026-07-14T14:25:48.612Z"
+    }
+  ],
+  "whatsappSettings": [
+    {
+      "branchId": 1,
+      "autoReply": false
+    }
+  ]
 }

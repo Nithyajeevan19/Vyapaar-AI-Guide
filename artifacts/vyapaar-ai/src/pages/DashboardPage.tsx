@@ -7,15 +7,15 @@ import { Bot, Globe, Users, MessageCircle, ArrowRight, Building2, Zap, LineChart
 import { motion } from "framer-motion";
 import { SkeletonCard } from "../components/SkeletonCard";
 
-export default function DashboardPage() {
-  const { user } = useAuth();
+export default function DashboardPage({ onToggleView, currentMode }: { onToggleView?: (mode: string) => void; currentMode?: string }) {
+  const { user, currentOrgId } = useAuth();
   const { language } = useLanguage();
   // API query hooks
   const { data: orgs } = useListOrganizations({
     query: { enabled: !!user } as any
   });
   const { data: profile, isLoading: loadingProfile } = useGetBusinessProfile(
-    { orgId: 1 },
+    { orgId: currentOrgId },
     { query: { enabled: !!user } as any }
   );
 
@@ -54,18 +54,44 @@ export default function DashboardPage() {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-accent/40 to-transparent" />
       
       <div className="p-4 md:p-8 max-w-6xl mx-auto pt-8">
-        <header className="mb-10 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-md">
-            {userInitial}
+        <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-2xl font-bold shadow-md">
+              {userInitial}
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-4xl font-bold text-foreground mb-1">
+                {greeting}, <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{user?.displayName || user?.email?.split("@")[0]}</span>!
+              </h1>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Welcome to your Vyapaar AI Dashboard. Let's digitize your business.
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl md:text-4xl font-bold text-foreground mb-1">
-              {greeting}, <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{user?.displayName || user?.email?.split("@")[0]}</span>!
-            </h1>
-            <p className="text-muted-foreground text-base md:text-lg">
-              Welcome to your Vyapaar AI Dashboard. Let's digitize your business.
-            </p>
-          </div>
+          {onToggleView && (
+            <div className="flex bg-muted p-1 rounded-xl border border-muted-border max-h-[36px] self-start md:self-auto">
+              <button
+                onClick={() => onToggleView("ai-ceo")}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  currentMode === "ai-ceo"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                AI CEO
+              </button>
+              <button
+                onClick={() => onToggleView("dashboard")}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  currentMode === "dashboard"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Analytics
+              </button>
+            </div>
+          )}
         </header>
 
         {loading ? (

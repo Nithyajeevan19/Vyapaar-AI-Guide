@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, customers, leads, inquiries, tasks } from "@workspace/db";
+import { db, customers, leads, inquiries, tasks, organizationMembers } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { mockStore } from "../lib/mockStore";
@@ -160,31 +160,72 @@ router.post("/leads", requireOrgMembership, validate(createLeadSchema), async (r
   return res.json(newLead);
 });
 
-router.put("/leads/:leadId/status", validate(updateLeadStatusSchema), async (req, res) => {
+router.put("/leads/:leadId/status", requireOrgMembership, validate(updateLeadStatusSchema), async (req, res, next) => {
   const leadId = parseInt(req.params.leadId as string);
   const { status } = req.body;
+  const userId = req.headers["x-user-id"] as string || "mock-user-1";
 
-  if (process.env.DATABASE_URL) {
-    try {
+  try {
+    let orgId: number;
+
+    if (process.env.DATABASE_URL) {
+      const leadRecord = await db.select().from(leads).where(eq(leads.id, leadId)).limit(1);
+      if (leadRecord.length === 0) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+      orgId = leadRecord[0].orgId;
+
+      // Verify org membership context manually using the database
+      const membership = await db
+        .select()
+        .from(organizationMembers)
+        .where(
+          and(
+            eq(organizationMembers.userId, userId),
+            eq(organizationMembers.orgId, orgId)
+          )
+        )
+        .limit(1);
+
+      if (membership.length === 0) {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: `Unauthorized access. User does not have membership permissions for organization ${orgId}.`,
+        });
+      }
+
       const [updated] = await db
         .update(leads)
         .set({ status, updatedAt: new Date() })
         .where(eq(leads.id, leadId))
         .returning();
       return res.json(updated);
-    } catch (err: any) {
-      console.error("DB Update Lead Status Error:", err.message);
-    }
-  }
+    } else {
+      const lead = mockStore.leads.find((l) => l.id === leadId);
+      if (!lead) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+      orgId = lead.orgId;
 
-  // Fallback
-  const lead = mockStore.leads.find((l) => l.id === leadId);
-  if (lead) {
-    lead.status = status;
-    lead.updatedAt = new Date().toISOString();
-    return res.json(lead);
+      // Verify org membership context manually using mockStore
+      const isMember = mockStore.organizationMembers.some(
+        (m) => m.userId === userId && m.orgId === orgId
+      );
+
+      if (!isMember) {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: `Unauthorized access. User does not have membership permissions for organization ${orgId}.`,
+        });
+      }
+
+      lead.status = status;
+      lead.updatedAt = new Date().toISOString();
+      return res.json(lead);
+    }
+  } catch (err) {
+    next(err);
   }
-  return res.status(404).json({ error: "Lead not found" });
 });
 
 // ============================================================================

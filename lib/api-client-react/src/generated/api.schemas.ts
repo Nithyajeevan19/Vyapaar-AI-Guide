@@ -326,6 +326,54 @@ export interface AnalyticsSummary {
   leadsHistory?: AnalyticsSummaryLeadsHistoryItem[];
 }
 
+export interface VoiceSession {
+  id: number;
+  orgId: number;
+  status: string;
+  createdAt: string;
+  endedAt?: string | null;
+}
+
+export interface VoiceTranscript {
+  rawTranscript: string;
+  confidence: number;
+}
+
+export interface VoiceResponse {
+  responseText: string;
+  audioUrl?: string | null;
+}
+
+export interface VoiceMessage {
+  id: number;
+  sessionId: number;
+  role: string;
+  contentText: string;
+  audioUrl?: string | null;
+  duration?: number | null;
+  createdAt: string;
+}
+
+export interface VoiceSettings {
+  id: number;
+  orgId: number;
+  userId: string;
+  voiceType: string;
+  language: string;
+  autoSpeak: boolean;
+  speechRate: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface VoiceSettingsUpdate {
+  orgId: number;
+  voiceType: string;
+  language: string;
+  autoSpeak: boolean;
+  speechRate: number;
+}
+
 export type SyncUserBody = {
   id: string;
   email: string;
@@ -621,5 +669,39 @@ export type UpdateWhatsAppSettingsBody = {
 export type UpdateWhatsAppSettings200 = {
   branchId: number;
   autoReply: boolean;
+};
+
+export type StartVoiceSessionBody = {
+  orgId: number;
+};
+
+export type TranscribeVoiceAudioBody = {
+  /** Audio recording file (wav/mp3/m4a/ogg) */
+  file: Blob;
+  orgId: number;
+};
+
+export type GetVoiceResponseBody = {
+  sessionId: number;
+  orgId: number;
+  text: string;
+};
+
+export type GetVoiceHistoryParams = {
+sessionId: number;
+orgId: number;
+};
+
+export type EndVoiceSessionBody = {
+  sessionId: number;
+  orgId: number;
+};
+
+export type EndVoiceSession200 = {
+  success: boolean;
+};
+
+export type GetVoiceSettingsParams = {
+orgId: number;
 };
 

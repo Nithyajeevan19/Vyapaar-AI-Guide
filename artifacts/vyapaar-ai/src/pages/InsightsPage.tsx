@@ -19,11 +19,13 @@ import {
 } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useAuth } from "../hooks/useAuth";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
 
 export default function InsightsPage() {
-  const orgId = 1;
+  const { currentOrgId } = useAuth();
+  const orgId = currentOrgId;
 
   // API hooks for analytics and predictions
   const { data: stats, isLoading: loadingStats } = useGetAnalyticsDashboard({ orgId });
@@ -31,10 +33,14 @@ export default function InsightsPage() {
   const { data: revenueForecast, isLoading: loadingRevenue } = useGetRevenueForecast({ orgId });
 
   const { data: insights = [] } = useQuery<any[]>({
-    queryKey: ["analyticsInsights"],
+    queryKey: ["analyticsInsights", orgId],
     queryFn: async () => {
       const res = await fetch(`${API_BASE_URL}/api/analytics/insights?orgId=${orgId}`);
-      return res.json();
+      if (!res.ok) {
+        throw new Error("Failed to fetch insights");
+      }
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     }
   });
 
@@ -240,8 +246,10 @@ export default function InsightsPage() {
             </div>
             
             <div className="space-y-4 mb-8 font-sans">
-              {insights.length === 0 ? (
-                <div className="text-center py-10 text-sm text-muted-foreground font-semibold animate-pulse">Generating insights...</div>
+              {!Array.isArray(insights) || insights.length === 0 ? (
+                <div className="text-center py-10 text-sm text-muted-foreground font-semibold animate-pulse">
+                  {!Array.isArray(insights) ? "Failed to load insights" : "Generating insights..."}
+                </div>
               ) : (
                 insights.map((ins: any, idx: number) => {
                   const borderColors = ["border-green-500", "border-blue-500", "border-amber-500", "border-purple-500"];

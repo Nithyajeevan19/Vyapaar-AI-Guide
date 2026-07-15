@@ -3,6 +3,7 @@ import { BusinessBranding } from "../../services/geminiService";
 import { Phone, MapPin, Mail, ChevronRight, CheckCircle2, MessageSquare, ShoppingCart, Search, CreditCard, Sparkles } from "lucide-react";
 import { useSubmitInquiry, useCreateOrder, useListOrders } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "../../hooks/useAuth";
 
 interface Props {
   branding: BusinessBranding;
@@ -11,7 +12,8 @@ interface Props {
 
 export function GenericTemplate({ branding, phone }: Props) {
   const { toast } = useToast();
-  const orgId = 1;
+  const { currentOrgId } = useAuth();
+  const orgId = currentOrgId;
   const whatsappLink = `https://wa.me/${phone.replace(/\D/g, "")}`;
 
   // Form State variables

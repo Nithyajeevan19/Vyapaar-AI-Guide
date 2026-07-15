@@ -3,8 +3,12 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { requestId } from "./middlewares/requestId";
+import { errorHandler } from "./errors/errorHandler";
 
 const app: Express = express();
+
+app.use(requestId);
 
 app.use(
   pinoHttp({
@@ -30,5 +34,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+app.use(errorHandler);
 
 export default app;

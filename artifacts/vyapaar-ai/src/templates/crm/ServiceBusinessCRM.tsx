@@ -1,5 +1,6 @@
 import { BusinessBranding } from "../../services/geminiService";
 import { CalendarClock, Users, IndianRupee, Star, Loader2 } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import {
   useListCustomers,
   useListTasks,
@@ -11,7 +12,8 @@ interface Props {
 }
 
 export function ServiceBusinessCRM({ branding }: Props) {
-  const orgId = 1;
+  const { currentOrgId } = useAuth();
+  const orgId = currentOrgId;
 
   // React Query Hooks
   const { data: stats, isLoading: loadingStats } = useGetAnalyticsDashboard({ orgId });

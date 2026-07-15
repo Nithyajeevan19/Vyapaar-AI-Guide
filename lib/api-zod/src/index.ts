@@ -1051,4 +1051,133 @@ export const UpdateWhatsAppSettingsResponse = zod.object({
   "branchId": zod.number(),
   "autoReply": zod.boolean()
 })
+
+
+/**
+ * Initiates a new voice session or returns an active one for the organization.
+ * @summary Start Voice Session
+ */
+export const StartVoiceSessionBody = zod.object({
+  "orgId": zod.number()
+})
+
+export const StartVoiceSessionResponse = zod.object({
+  "id": zod.number(),
+  "orgId": zod.number(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "endedAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * Uploads and transcribes voice recording file.
+ * @summary Transcribe Audio
+ */
+export const TranscribeVoiceAudioBody = zod.object({
+  "file": zod.instanceof(File).describe('Audio recording file (wav\/mp3\/m4a\/ogg)'),
+  "orgId": zod.number()
+})
+
+export const TranscribeVoiceAudioResponse = zod.object({
+  "rawTranscript": zod.string(),
+  "confidence": zod.number()
+})
+
+
+/**
+ * Submits transcribed user prompt text and returns text + voice audio response.
+ * @summary Get Voice AI Response
+ */
+export const GetVoiceResponseBody = zod.object({
+  "sessionId": zod.number(),
+  "orgId": zod.number(),
+  "text": zod.string()
+})
+
+export const GetVoiceResponseResponse = zod.object({
+  "responseText": zod.string(),
+  "audioUrl": zod.string().nullish()
+})
+
+
+/**
+ * Returns conversation message transcripts for a given session.
+ * @summary Get Session Voice History
+ */
+export const GetVoiceHistoryQueryParams = zod.object({
+  "sessionId": zod.coerce.number(),
+  "orgId": zod.coerce.number()
+})
+
+export const GetVoiceHistoryResponseItem = zod.object({
+  "id": zod.number(),
+  "sessionId": zod.number(),
+  "role": zod.string(),
+  "contentText": zod.string(),
+  "audioUrl": zod.string().nullish(),
+  "duration": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetVoiceHistoryResponse = zod.array(GetVoiceHistoryResponseItem)
+
+
+/**
+ * Gracefully terminates the voice session.
+ * @summary End Voice Session
+ */
+export const EndVoiceSessionBody = zod.object({
+  "sessionId": zod.number(),
+  "orgId": zod.number()
+})
+
+export const EndVoiceSessionResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * Retrieves the voice configurations for the merchant user.
+ * @summary Get Voice Settings
+ */
+export const GetVoiceSettingsQueryParams = zod.object({
+  "orgId": zod.coerce.number()
+})
+
+export const GetVoiceSettingsResponse = zod.object({
+  "id": zod.number(),
+  "orgId": zod.number(),
+  "userId": zod.string(),
+  "voiceType": zod.string(),
+  "language": zod.string(),
+  "autoSpeak": zod.boolean(),
+  "speechRate": zod.number(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+/**
+ * Updates the voice configurations for the merchant user.
+ * @summary Update Voice Settings
+ */
+export const UpdateVoiceSettingsBody = zod.object({
+  "orgId": zod.number(),
+  "voiceType": zod.string(),
+  "language": zod.string(),
+  "autoSpeak": zod.boolean(),
+  "speechRate": zod.number()
+})
+
+export const UpdateVoiceSettingsResponse = zod.object({
+  "id": zod.number(),
+  "orgId": zod.number(),
+  "userId": zod.string(),
+  "voiceType": zod.string(),
+  "language": zod.string(),
+  "autoSpeak": zod.boolean(),
+  "speechRate": zod.number(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+})
 export * from './index';

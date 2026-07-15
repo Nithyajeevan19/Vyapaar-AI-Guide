@@ -203,6 +203,16 @@
       "sku": "DAL-TOOR-1K",
       "stock": 30,
       "category": "Dals"
+    },
+    {
+      "id": 4,
+      "orgId": 1,
+      "name": "Atta Wheat Flour 10kg",
+      "description": "Premium whole wheat flour",
+      "price": 45000,
+      "sku": "FLOUR-ATTA-10",
+      "stock": 8,
+      "category": "Flour"
     }
   ],
   "services": [

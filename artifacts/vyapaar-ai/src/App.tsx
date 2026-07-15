@@ -2,7 +2,11 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
+import { translateText } from "./services/translationService";
+if (typeof window !== "undefined") {
+  (window as any).translateText = translateText;
+}
 
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
@@ -18,6 +22,8 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const LanguageSelectPage = lazy(() => import("./pages/LanguageSelectPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const AICeoCommandCenterPage = lazy(() => import("./pages/AICeoCommandCenterPage"));
+const MissionManagementPage = lazy(() => import("./pages/MissionManagementPage"));
 const AIBusinessSetupPage = lazy(() => import("./pages/AIBusinessSetupPage"));
 const ComingSoonPage = lazy(() => import("./pages/ComingSoonPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
@@ -51,19 +57,35 @@ const queryClient = new QueryClient();
 // Page-level skeleton loader representing dashboard configurations
 function PageLoader() {
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6 animate-fade-in">
-      <div className="space-y-2">
-        <SkeletonCard className="h-10 w-1/3" />
-        <SkeletonCard className="h-4 w-1/4" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-        <SkeletonCard className="h-40" />
-        <SkeletonCard className="h-40" />
-        <SkeletonCard className="h-40" />
-      </div>
-      <SkeletonCard className="h-96 w-full" />
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   );
+}
+
+function DashboardController() {
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem("vyapaar_homepage_mode") || "ai-ceo";
+  });
+
+  const handleToggle = (mode: string) => {
+    localStorage.setItem("vyapaar_homepage_mode", mode);
+    setViewMode(mode);
+    window.dispatchEvent(new Event("homepage_mode_changed"));
+  };
+
+  useEffect(() => {
+    const listener = () => {
+      setViewMode(localStorage.getItem("vyapaar_homepage_mode") || "ai-ceo");
+    };
+    window.addEventListener("homepage_mode_changed", listener);
+    return () => window.removeEventListener("homepage_mode_changed", listener);
+  }, []);
+
+  if (viewMode === "dashboard") {
+    return <DashboardPage onToggleView={handleToggle} currentMode={viewMode} />;
+  }
+  return <AICeoCommandCenterPage onToggleView={handleToggle} currentMode={viewMode} />;
 }
 
 function Router() {
@@ -101,7 +123,17 @@ function Router() {
         <ProtectedRoute>
           <Layout>
             <Suspense fallback={<PageLoader />}>
-              <DashboardPage />
+              <DashboardController />
+            </Suspense>
+          </Layout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/missions">
+        <ProtectedRoute>
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <MissionManagementPage />
             </Suspense>
           </Layout>
         </ProtectedRoute>

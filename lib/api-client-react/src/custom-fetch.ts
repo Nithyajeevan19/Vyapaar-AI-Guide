@@ -379,6 +379,14 @@ export async function customFetch<T = unknown>(
     }
   }
 
+  // Attach organization ID from localStorage context if available
+  if (typeof window !== "undefined" && window.localStorage && !headers.has("x-org-id")) {
+    const orgId = window.localStorage.getItem("vyapaar_current_org_id");
+    if (orgId) {
+      headers.set("x-org-id", orgId);
+    }
+  }
+
   const requestInfo = { method, url: resolveUrl(input) };
 
   const response = await fetch(input, { ...init, method, headers });

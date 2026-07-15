@@ -63,15 +63,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("vyapaar_mock_user")) {
-      setLoading(false);
+    let active = true;
+
+    async function syncUser(currentUser: any) {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || "https://vyapaar-ai-guide-1.onrender.com";
+        const res = await fetch(`${API_BASE_URL}/api/auth/sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: currentUser.uid || currentUser.id,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+          }),
+        });
+        if (res.ok && active) {
+          const data = await res.json();
+          if (data.organization?.id) {
+            setCurrentOrgId(data.organization.id);
+            if (data.branch?.id) {
+              setCurrentBranchId(data.branch.id);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync user auth state on load:", err);
+      }
+    }
+
+    const mock = localStorage.getItem("vyapaar_mock_user");
+    if (mock) {
+      try {
+        const parsed = JSON.parse(mock);
+        setUser(parsed);
+        syncUser(parsed).finally(() => {
+          if (active) setLoading(false);
+        });
+      } catch {
+        setLoading(false);
+      }
       return;
     }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+      if (currentUser) {
+        setUser(currentUser);
+        syncUser(currentUser).finally(() => {
+          if (active) setLoading(false);
+        });
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
     });
-    return () => unsubscribe();
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   return (

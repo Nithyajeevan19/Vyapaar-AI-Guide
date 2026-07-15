@@ -5,6 +5,7 @@ import {
   useQueryKnowledge 
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "../hooks/useAuth";
 import { 
   UploadCloud, 
   FileText, 
@@ -32,7 +33,8 @@ interface Message {
 }
 
 export default function SupportPage() {
-  const orgId = 1; // Default tenant
+  const { currentOrgId } = useAuth();
+  const orgId = currentOrgId; // Active tenant
   const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [question, setQuestion] = useState("");

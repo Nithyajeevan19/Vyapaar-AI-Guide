@@ -54,7 +54,7 @@ const BRAND_TONES = [
 ];
 
 export default function AIBusinessSetupPage() {
-  const { user } = useAuth();
+  const { user, currentOrgId } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
 
@@ -183,7 +183,7 @@ export default function AIBusinessSetupPage() {
       if (onboardResult) {
         await updateProfileMutation.mutateAsync({
           data: {
-            orgId: 1,
+            orgId: currentOrgId,
             tagline: onboardResult.tagline || undefined,
             primaryColor: onboardResult.primaryColor || undefined,
             shortDescription: onboardResult.description || undefined,

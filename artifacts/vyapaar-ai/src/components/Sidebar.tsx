@@ -17,14 +17,17 @@ import {
   LogOut,
   Menu,
   X,
-  Megaphone
+  Megaphone,
+  Sparkles,
+  Target
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_ITEMS = [
-  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { name: "AI Business Setup", path: "/ai-setup", icon: Bot },
+  { name: "Dashboard", path: "/dashboard", icon: Bot },
+  { name: "Mission Control", path: "/missions", icon: Target },
+  { name: "AI Business Setup", path: "/ai-setup", icon: Sparkles },
   { name: "Website", path: "/website", icon: Globe },
   { name: "Marketing", path: "/marketing", icon: Megaphone },
   { name: "CRM", path: "/crm", icon: Users },
@@ -41,6 +44,22 @@ export function Sidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [mode, setMode] = useState(() => localStorage.getItem("vyapaar_homepage_mode") || "ai-ceo");
+
+  useEffect(() => {
+    const listener = () => {
+      setMode(localStorage.getItem("vyapaar_homepage_mode") || "ai-ceo");
+    };
+    window.addEventListener("homepage_mode_changed", listener);
+    return () => window.removeEventListener("homepage_mode_changed", listener);
+  }, []);
+
+  const toggleMode = () => {
+    const nextMode = mode === "ai-ceo" ? "dashboard" : "ai-ceo";
+    localStorage.setItem("vyapaar_homepage_mode", nextMode);
+    setMode(nextMode);
+    window.dispatchEvent(new Event("homepage_mode_changed"));
+  };
 
   const handleLogout = async () => {
     try {
@@ -120,6 +139,16 @@ export function Sidebar() {
               {user?.email}
             </p>
           </div>
+        </div>
+        {/* Homepage Switcher Widget */}
+        <div className="mb-4 p-2 bg-sidebar-accent/50 rounded-xl border border-sidebar-border/40 flex items-center justify-between text-xs">
+          <span className="font-semibold text-sidebar-foreground/70 font-sans">Home Mode:</span>
+          <button
+            onClick={toggleMode}
+            className="px-2 py-1 bg-sidebar-primary text-sidebar-primary-foreground rounded-lg font-bold hover:opacity-90 active:scale-95 transition-all text-[9px] uppercase tracking-wider font-sans"
+          >
+            {mode === "ai-ceo" ? "AI CEO" : "Traditional"}
+          </button>
         </div>
         <button
           onClick={handleLogout}
